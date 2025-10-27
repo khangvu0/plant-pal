@@ -1,0 +1,17 @@
+/*-------------------- Google Font --------------------*/
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+/*-------------------- Color Variables --------------------*/
+:root {
+    --dark-green-color: #344e41;
+    --medium-green-color: #3a5a40;
+    --green-color: #588157;
+    --light-green-color: #a3b18a;
+    --text-color: #333333;
+    --body-color: #ffffff;
+    --off-white-color: #dad7cd;
+
+    --font-logo: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+    --font-title: 'garamond-premier-pro', 'Poppins', sans-serif;
+    --font-text: 'DS Trade Gothic', 'Poppins', sans-serif;
+}

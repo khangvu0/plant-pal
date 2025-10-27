@@ -1,0 +1,70 @@
+.header {
+    position: sticky;
+    width: 100vw;
+    max-width: 1800px;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    background-color: var(--dark-green-color);
+    border-bottom: 2px solid #e0e0e0;
+    margin: 0 auto;
+}
+
+.nav {
+    height: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 1.5rem;
+    font-weight: 500;
+}
+
+.nav_logo {
+    color: white;
+    font-family: var(--font-logo);
+    letter-spacing: 2px;
+}
+
+.nav_logo:hover {
+    color: var(--off-white-color);
+}
+
+.nav_list {
+    display: flex;
+}
+
+.nav_link {
+    padding-left: 1rem;
+    align-items: center;
+    font-size: 0.9rem;
+    color: white;
+    font-family: var(--font-text);
+}
+
+.nav_link:hover {
+    color: var(--light-green-color);
+}
+
+/*-------------------- Media Queries --------------------*/
+/* For tablet */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+    .nav_logo {
+        font-size: 1.5rem;
+    }
+
+    .nav_link {
+        font-size: 1rem;
+    }
+}
+
+/* For large devices */
+@media screen and (min-width: 1024px) {
+    .nav_logo {
+        font-size: 1.5rem;
+    }
+
+    .nav_link {
+        font-size: 1rem;
+        padding-left: 2rem;
+    }
+}
