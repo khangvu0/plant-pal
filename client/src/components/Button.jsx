@@ -8,13 +8,14 @@ export default function Button({
     type = 'button',
     disabled = false,
     className = '',
+    size = 'small',
 }) {
     return (
         <button
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`btn ${className}`}>
+            className={`btn btn--${size} ${className}`.trim()}>
             {children}
         </button>
     );
