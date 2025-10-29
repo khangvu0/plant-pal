@@ -1,17 +1,17 @@
-const mysql = require('mysql2/promise');
+import mysql from 'mysql2/promise';
 
-const pool = mysql.createPool({
-host: 'localhost',
-user: 'root',
-password: 'password', 
-database: 'Plant-Pal', 
-port: 3306,
-connectionLimit: 10
+const db = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: 'password', 
+  database: 'Plant-Pal', 
+  port: 3306,
+  connectionLimit: 10
 });
 
 async function verifyDatabaseConnection() {
   try {
-    const connection = await pool.getConnection();
+    const connection = await db.getConnection();
     console.log('Database connected successfully');
     connection.release();
   } catch (err) {
@@ -19,8 +19,8 @@ async function verifyDatabaseConnection() {
   }
 }
 
-module.exports = {
-  pool,
+export {
+  db,
   verifyDatabaseConnection
 };
 
