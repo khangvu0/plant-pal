@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { db, verifyDatabaseConnection } from './db.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-
+import { continueConversation } from './ai.js';
 dotenv.config();
 
 
@@ -16,6 +16,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 const SALT_ROUNDS = 10;
+
+// Open AI API
+app.post("/api/ai/chat", async (req, res, next) => {
+    try {
+        const { history = [], prompt } = req.body ?? {};
+        if (!prompt) return res.status(400).json({ error: "missing_prompt" });
+
+        const updatedHistory = await continueConversation(history, prompt);
+        res.json({ history: updatedHistory });
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Serve static files from client/dist
 app.use(express.static(path.join(__dirname, '../client/dist')));

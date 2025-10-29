@@ -31,12 +31,12 @@ export default function Dashboard() {
     ]);
 
     const [newPlant, setNewPlant] = useState({ nickname: '', species: '' });
-    const [chatMessages, setChatMessages] = useState([
-        {
-            sender: 'bot',
-            text: 'Hi! I’m your AI Botanist 🌱. How can I help today?',
-        },
+
+    const [chatHistory, setChatHistory] = useState([
+    { role: 'assistant', content: 'Hi! I’m Plant Pal🌱. How can I help today?' },
     ]);
+    const [isChatLoading, setIsChatLoading] = useState(false);
+    const [chatError, setChatError] = useState(null);
     const [userInput, setUserInput] = useState('');
 
     const handleAddPlant = async () => {
@@ -56,20 +56,38 @@ export default function Dashboard() {
         setShowModal(false);
         setNewPlant({ nickname: '', species: '' });
     };
+    // For OpenAI API
+    const handleChatSubmit = async (event) => {
+        event.preventDefault();
+        const prompt = userInput.trim();
+        if (!prompt || isChatLoading) return;
 
-    const handleChatSubmit = async (e) => {
-        e.preventDefault();
-        if (!userInput.trim()) return;
-        const newUserMsg = { sender: 'user', text: userInput };
-        setChatMessages((prev) => [...prev, newUserMsg]);
+        const nextHistory = [...chatHistory, { role: 'user', content: prompt }];
+        setChatHistory(nextHistory);
         setUserInput('');
+        setChatError(null);
+        setIsChatLoading(true);
 
-        // Placeholder for OpenAI API
-        const botReply = {
-            sender: 'bot',
-            text: 'Yellow leaves could be from overwatering or low light. Try adjusting your watering schedule!',
-        };
-        setChatMessages((prev) => [...prev, botReply]);
+    try {   
+        const response = await fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ history: chatHistory, prompt }),
+        });
+
+        if (!response.ok) throw new Error(`AI request failed (${response.status})`);
+        const { history: serverHistory } = await response.json();
+        setChatHistory(serverHistory ?? nextHistory);
+    } catch (error) {
+            console.error('AI Botanist error:', error);
+            setChatHistory([
+            ...nextHistory,
+            { role: 'assistant', content: 'Sorry, my greenhouse is offline. :( Please try again soon.' },
+        ]);
+        setChatError('The AI botanist is temporarily unavailable.');
+    } finally {
+        setIsChatLoading(false);
+    }
     };
 
     return (
@@ -203,24 +221,23 @@ export default function Dashboard() {
             {activeTab === 'ai' && (
                 <section className="ai-botanist">
                     <div className="chat-box">
-                        {chatMessages.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                className={`chat-message ${
-                                    msg.sender === 'user' ? 'user' : 'bot'
-                                }`}>
-                                {msg.text}
-                            </div>
-                        ))}
+                    {chatHistory.map((turn, index) => (
+                        <div key={index} className={`chat-message ${turn.role === 'user' ? 'user' : 'bot'}`}>
+                        {turn.content}
+                        </div>
+                    ))}
+                    {isChatLoading && <div className="chat-message bot typing">PlantPal is thinking…</div>}
                     </div>
+                    {chatError && <p className="chat-error">{chatError}</p>}
                     <form className="chat-input" onSubmit={handleChatSubmit}>
-                        <input
-                            type="text"
-                            placeholder="Ask your AI botanist..."
-                            value={userInput}
-                            onChange={(e) => setUserInput(e.target.value)}
-                        />
-                        <button type="submit">Send</button>
+                    <input
+                        type="text"
+                        placeholder="Ask your AI botanist..."
+                        value={userInput}
+                        onChange={(e) => setUserInput(e.target.value)}
+                        disabled={isChatLoading}
+                    />
+                    <button type="submit" disabled={isChatLoading}>Send</button>
                     </form>
                 </section>
             )}
