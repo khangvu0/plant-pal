@@ -110,7 +110,14 @@ export default function Register() {
         if (!isValid) return;
 
         try {
-            const res = await axios.post('/api/register', formData);
+            // Transform data to match backend expectations
+            const registrationData = {
+                ...formData,
+                password_hash: formData.password // Backend expects 'password_hash'
+            };
+            delete registrationData.password; // Remove original password field
+            
+            const res = await axios.post('/api/register', registrationData);
             setMessage(res.data.message || 'Account created successfully!');
 
             // Reset
@@ -125,8 +132,9 @@ export default function Register() {
             setAgreeTerms(false);
             setSubmitted(false);
         } catch (err) {
-            setMessage('Registration failed. Please try again.');
-            console.error(err);
+            const errorMessage = err.response?.data?.error || 'Registration failed. Please try again.';
+            setMessage(errorMessage);
+            console.error('Registration error:', err);
         }
     };
 
@@ -251,3 +259,4 @@ export default function Register() {
         </form>
     );
 }
+
