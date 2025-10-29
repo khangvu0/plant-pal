@@ -1,1 +1,254 @@
-/* Dashboard */
+.dashboard {
+    background: linear-gradient(180deg, #e7f9e7 0%, #e1f7e1 100%);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    color: var(--dark-green-color);
+}
+
+.dashboard--header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.dashboard--header h2 {
+    color: #126b2c;
+    font-weight: 600;
+}
+
+.dashboard--header p {
+    color: #216b3b;
+    margin: 0.5rem 0 1.5rem;
+}
+
+.dashboard--tabs {
+    display: inline-flex;
+    background: #fff;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-btn {
+    border: none;
+    padding: 0.7rem 1.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    background: #1ca64c;
+    color: #fff;
+}
+
+.plant-collection-header {
+    display: flex;
+}
+
+.plant-collection h3 {
+    color: #14632b;
+    margin-bottom: 0.2rem;
+}
+
+.plant-collection p {
+    color: #3a7a4a;
+    margin-bottom: 1rem;
+}
+
+.plant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+}
+
+.plant-card {
+    background: #ffffffc9;
+    border: 1px solid #b6e6b8;
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.plant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.plant-header h4 {
+    font-size: 1.1rem;
+    color: #094f1a;
+}
+
+.plant-species {
+    font-style: italic;
+    color: #387c49;
+}
+
+.plant-actions .icon {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    color: #1a7d35;
+}
+
+.plant-actions .delete {
+    color: #d93a3a;
+}
+
+.plant-details {
+    margin-top: 0.8rem;
+}
+
+.plant-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+}
+
+.plant-icon {
+    font-size: 1.4rem;
+    color: #219653;
+}
+
+.plant-notes {
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    color: #2a4a2e;
+}
+
+.plant-date {
+    font-size: 0.85rem;
+    color: #3d6441;
+    margin-top: 0.3rem;
+}
+
+.add-plant-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #1ca64c;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    transition: 0.2s ease;
+    position: relative;
+}
+
+.add-plant-btn:hover {
+    background: #168a3e;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.modal input {
+    padding: 0.6rem;
+    border: 1px solid #b6e6b8;
+    border-radius: 8px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.modal-actions button {
+    background: #1ca64c;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.modal-actions .cancel {
+    background: #ccc;
+}
+
+/* Chatbot Section */
+.ai-botanist {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.chat-box {
+    background: #ffffffd6;
+    width: 90%;
+    max-width: 600px;
+    height: 420px;
+    border-radius: 12px;
+    padding: 1rem;
+    overflow-y: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chat-message {
+    margin: 0.5rem 0;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    max-width: 80%;
+}
+
+.chat-message.user {
+    background: #1ca64c;
+    color: #fff;
+    margin-left: auto;
+}
+
+.chat-message.bot {
+    background: #e8fbe8;
+    color: #0a3c14;
+    margin-right: auto;
+}
+
+.chat-input {
+    display: flex;
+    width: 90%;
+    max-width: 600px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 0.7rem;
+    border: 1px solid #b6e6b8;
+    border-radius: 8px 0 0 8px;
+    outline: none;
+}
+
+.chat-input button {
+    background: #1ca64c;
+    border: none;
+    color: #fff;
+    padding: 0.7rem 1.2rem;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+}
