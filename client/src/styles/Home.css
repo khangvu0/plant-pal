@@ -1,3 +1,116 @@
+main {
+    align-content:center;
+    text-align: center;
+    margin: 0;
+    color: #264F2F;
+}
+.header-container {
+    position: relative;
+    width: 100%;
+    height: 60vh;
+    overflow: hidden;
+}
+
+.header-video {
+    width: 100%;
+    object-fit:cover;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  
+}
+
+.video-overlay h1 {
+  font-size: 3rem;
+  /*margin-bottom: 1rem;*/
+}
+
+.video-overlay p {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-btn {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  background-color: #E0F4E4;
+  color: #000;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+
+.stat {
+    margin: 1rem;
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr ;
+    padding: 10px;
+    gap: 10px; 
+   
+}
+
+
+.water,
+.air 
+{
+    background-color: #E0F0F5;
+    border-radius: 10px;
+}
+.water h2 {
+    margin-bottom: 10px;
+    color: rgb(1, 1, 115)
+}
+.air {
+    margin-bottom: 10px;
+    color: rgb(2, 62, 27);
+}
+
+.electric {
+    background-color: #FFF1D6;
+    border-radius: 10px;
+
+}
+.total {
+    background-color: #ECDFFC;
+    border-radius: 10px;
+}
+
+.des {
+    font-size: 11px;
+    color: green;
+    margin-bottom: 0;
+}
+
+.how {
+    color: white; 
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+.simple {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    
+}
+
+.dia,
+.con,
+.garden {
+    border-top: .5px solid gray;
+    padding: 30px;
+
+}
+
+/*c5EaCC*/
 /*-------------------- Media Queries --------------------*/
 /* For tablet */
 @media screen and (min-width: 768px) {
@@ -5,4 +118,24 @@
 
 /* For large devices */
 @media screen and (min-width: 1024px) {
+    .statistics {
+    padding: 60px;
+}
+.statistics h2 {
+    font-size: 50px;
+}
+    .stat {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        font-size: 30px;
+    }
+
+.dia,
+.con,
+.garden {
+    padding: 50px;
+    text-align: left;
+}
+.des {
+    font-size: 15px;
+}
 }
