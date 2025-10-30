@@ -144,6 +144,12 @@ export default function Dashboard() {
                             onClick={() => setShowModal(true)}>
                             + Add Plant
                         </Button>
+                        {showModal && (
+                        <div className="custom-modal-overlay">
+                        <div className="custom-modal">
+                        </div>
+                        </div>
+)}
                     </div>
                     <p>Manage and track your growing collection</p>
 
@@ -198,8 +204,8 @@ export default function Dashboard() {
                     </div>
 
                     {showModal && (
-                        <div className="modal-overlay">
-                            <div className="modal">
+                        <div className="custom-modal-overlay">
+                            <div className="custom-modal">
                                 <h3>Add a New Plant</h3>
                                 <label>Nickname (optional)</label>
                                 <input
@@ -225,7 +231,7 @@ export default function Dashboard() {
                                     }
                                     placeholder="e.g., Ficus lyrata"
                                 />
-                                <div className="modal-actions">
+                                <div className="custom-modal-actions">
                                     <button onClick={handleAddPlant}>
                                         Add
                                     </button>
