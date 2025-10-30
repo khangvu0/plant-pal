@@ -12,6 +12,9 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const API = 'https://perenual.com/api/v2';
+const KEY = process.env.PERENUAL_KEY;
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -28,6 +31,92 @@ app.post("/api/ai/chat", async (req, res, next) => {
     } catch (err) {
         next(err);
     }
+});
+
+// Perenual API
+app.get('/api/plants', async (req, res) => {
+try {
+    const q = (req.query.q || '').trim();
+    const page = req.query.page || 1;
+
+    if (!KEY) {
+        return res.status(500).json({ error: 'Missing PERENUAL_KEY' });
+    }
+    if (!q) {
+        return res.status(400).json({ error: 'Missing plant query' });
+    }
+
+    // Information from plant API
+    const listResp = await fetch(`${API}/species-list?key=${KEY}&q=${encodeURIComponent(q)}&page=${page}`);
+    if (!listResp.ok) {
+        throw new Error(`Perenual species-list failed (${listResp.status})`);
+    }
+    const listJson = await listResp.json();
+    const rows = Array.isArray(listJson.data) ? listJson.data : [];
+
+    if (rows.length === 0) {
+        return res.status(404).json({ error: 'No species found' });
+    }
+
+    // Specific details (information regarding plant care)
+    const detailPromises = rows.map(r =>
+        fetch(`${API}/species/details/${r.id}?key=${KEY}`)
+            .then((rsp) => (rsp.ok ? rsp.json() : null))
+            .catch(() => null)
+    );
+    const details = await Promise.all(detailPromises);
+
+    // Getting necessary details to frontend
+    const data = rows.map((r, i) => {
+        const d = details[i] || {};
+        const sci = Array.isArray(r.scientific_name)
+            ? r.scientific_name.join(', ')
+            : Array.isArray(d.scientific_name)
+            ? d.scientific_name.join(', ')
+            : '';
+        const sunlight = Array.isArray(d.sunlight) ? d.sunlight.join(', ') : '';
+        const waterFreq = d.watering_general_benchmark?.value
+            ? `${d.watering_general_benchmark.value} ${d.watering_general_benchmark.unit}`
+            : d.watering || '';
+        const img =
+            r.default_image?.medium_url ||
+            r.default_image?.regular_url ||
+            r.default_image?.original_url ||
+            null;
+
+        const descriptionSource = d.description ?? r.description ?? null;
+        let description = '';
+        if (typeof descriptionSource === 'string') {
+            description = descriptionSource;
+        } else if (Array.isArray(descriptionSource)) {
+            description = descriptionSource.filter((part) => typeof part === 'string').join(' ');
+        } else if (
+            descriptionSource &&
+            typeof descriptionSource === 'object' &&
+            !Array.isArray(descriptionSource)
+        ) {
+            description = Object.values(descriptionSource)
+                .flat()
+                .filter((part) => typeof part === 'string')
+                .join(' ');
+        }
+
+        return {
+            id: r.id,
+            common_name: r.common_name || '',
+            scientific_name: sci,
+            watering_frequency: waterFreq,
+            sunlight,
+            image: img,
+            description,
+        };
+    });
+
+    res.json({ data, page: Number(page) });
+    } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch plants' });
+}
 });
 
 // Serve static files from client/dist
