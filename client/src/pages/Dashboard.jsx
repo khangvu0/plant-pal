@@ -38,23 +38,40 @@ export default function Dashboard() {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [chatError, setChatError] = useState(null);
     const [userInput, setUserInput] = useState('');
-
+    // For Perenual API
     const handleAddPlant = async () => {
-        if (!newPlant.species) return;
+        if (!newPlant.species.trim()) return;
 
-        // Placeholder for Perenual API
-        const plant = {
-            id: plants.length + 1,
-            name: newPlant.nickname || newPlant.species,
-            species: newPlant.species,
-            watering: 'Every 1–2 weeks',
-            light: 'Bright, indirect light',
-            notes: 'Newly added plant from API data.',
-            added: new Date().toLocaleDateString(),
-        };
-        setPlants([...plants, plant]);
-        setShowModal(false);
-        setNewPlant({ nickname: '', species: '' });
+        try {
+            const response = await fetch(
+                `/api/plants?q=${encodeURIComponent(newPlant.species.trim())}`
+            );
+            if (!response.ok) {
+                throw new Error(`Plant search failed (${response.status})`);
+            }
+
+            const { data } = await response.json();
+            const match = Array.isArray(data) ? data[0] : null;
+            if (!match) throw new Error('No results found for that species');
+
+            const plant = {
+                id: match.id,
+                name: newPlant.nickname || match.common_name || newPlant.species,
+                species: match.scientific_name || newPlant.species,
+                watering: match.watering_frequency || 'Water as needed',
+                light: match.sunlight || 'Information not available',
+                notes: match.description || '',
+                imageUrl: match.image,
+                added: new Date().toLocaleDateString(),
+            };
+
+            setPlants((prev) => [...prev, plant]);
+            setShowModal(false);
+            setNewPlant({ nickname: '', species: '' });
+        } catch (error) {
+            console.error('Add plant failed:', error);
+            alert(error.message || 'Unable to add plant right now.');
+        }
     };
     // For OpenAI API
     const handleChatSubmit = async (event) => {
@@ -133,6 +150,13 @@ export default function Dashboard() {
                     <div className="plant-grid">
                         {plants.map((plant) => (
                             <div className="plant-card" key={plant.id}>
+                                {plant.imageUrl && (
+                                    <img
+                                        src={plant.imageUrl}
+                                        alt={`${plant.name} plant`}
+                                        className="plant-photo"
+                                    />
+                                )}
                                 <div className="plant-header">
                                     <div>
                                         <h4>{plant.name}</h4>
