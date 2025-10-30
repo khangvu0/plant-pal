@@ -161,3 +161,8 @@
         margin: 0 auto;
     }
 }
+
+nav, .nav-wrapper {
+  background-color: var(--dark-green-color) !important;
+}
+

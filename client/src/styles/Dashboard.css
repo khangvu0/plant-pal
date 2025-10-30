@@ -152,7 +152,7 @@
 }
 
 /* Modal */
-.modal-overlay {
+.custom-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -165,7 +165,7 @@
     z-index: 10;
 }
 
-.modal {
+.custom-modal {
     background: #fff;
     border-radius: 16px;
     padding: 2rem;
@@ -175,20 +175,20 @@
     gap: 0.7rem;
 }
 
-.modal input {
+.custom-modal input {
     padding: 0.6rem;
     border: 1px solid #b6e6b8;
     border-radius: 8px;
 }
 
-.modal-actions {
+.custom-modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
     margin-top: 1rem;
 }
 
-.modal-actions button {
+.custom-modal-actions button {
     background: #1ca64c;
     color: #fff;
     border: none;
@@ -197,7 +197,7 @@
     cursor: pointer;
 }
 
-.modal-actions .cancel {
+.custom-modal-actions .cancel {
     background: #ccc;
 }
 

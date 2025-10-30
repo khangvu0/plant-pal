@@ -2,6 +2,9 @@
     width: 100%;
     background-color: var(--dark-green-color);
     padding: 1.25rem;
+    position: relative;
+    justify-content: center;
+    align-items: center;
 }
 
 .footer-description {
@@ -34,6 +37,29 @@
 .footer-link:hover {
     color: var(--light-green-color);
 }
+p {
+    color: white;
+}
+
+p.copyright {
+        position: absolute;
+        width: 100%;
+        color: rgb(218, 218, 218);
+        bottom: 0;
+        line-height: 40px;
+        font-size: 0.7em;
+        text-align: center;
+ }
+ footer img {
+    width: 24px;
+    height: 24px;
+    justify-content: flex-start;
+    align-content: center;
+ }
+
+ .footer-icons {
+    display: flex;
+ }
 
 /*-------------------- Media Queries --------------------*/
 /* For tablet */
