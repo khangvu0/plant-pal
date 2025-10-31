@@ -25,6 +25,11 @@ ul {
     list-style: none;
 }
 
+li {
+    all: unset;
+    float: unset;
+}
+
 a {
     text-decoration: none;
 }
