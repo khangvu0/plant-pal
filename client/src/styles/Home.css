@@ -7,7 +7,6 @@ main {
 .header-container {
     position: relative;
     width: 100%;
-    height: 60vh;
     overflow: hidden;
 }
 
@@ -27,18 +26,19 @@ main {
 }
 
 .video-overlay h1 {
-  font-size: 3rem;
-  /*margin-bottom: 1rem;*/
+  font-size:  1.8rem;
+  font-weight: bold;
 }
 
 .video-overlay p {
-  font-size: 1.25rem;
-  margin-bottom: 1.5rem;
+  font-size: .90rem;
+  margin-bottom: 1.3em;
+  
 }
 
 .hero-btn {
   display: inline-block;
-  padding: 0.8rem 1.5rem;
+  padding: 0.5rem .8rem;
   background-color: #E0F4E4;
   color: #000;
   border-radius: 8px;
@@ -46,60 +46,69 @@ main {
   font-weight: bold;
 }
 
+.statistics {
+    padding: 60px 20px;
+    background-color:  #e7f9e7;
+}
+
+.statistics h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
 
 .stat {
-    margin: 1rem;
+    margin: 2rem;
     margin-top: 1rem;
     display: grid;
     grid-template-columns: 1fr 1fr ;
     padding: 10px;
-    gap: 10px; 
-   
+    gap: 20px; 
 }
 
-
-.water,
-.air 
-{
-    background-color: #E0F0F5;
-    border-radius: 10px;
+.stat-sec {
+    background-color: #f3f7f5;
+    border-radius: 15px;
+    padding: 30px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
-.water h2 {
-    margin-bottom: 10px;
-    color: rgb(1, 1, 115)
+.stat-sec h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #2d5a36;
 }
-.air {
-    margin-bottom: 10px;
-    color: rgb(2, 62, 27);
-}
-
-.electric {
-    background-color: #FFF1D6;
-    border-radius: 10px;
-
-}
-.total {
-    background-color: #ECDFFC;
-    border-radius: 10px;
+.stat-sec p {
+    margin: 4px ;
+    color: #2d5a36;
+    font-weight: 500;
 }
 
-.des {
-    font-size: 11px;
+.stat-sec .des {
+    font-size: 1rem;
     color: green;
     margin-bottom: 0;
 }
 
-.how {
-    color: white; 
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-}
+
 .simple {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-    
+    background-color: #f3f7f5;
+    padding: 60px 20px;
+    color: #264F2F; /*change*/
+}
+
+.simple h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+.simple h4 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #496f4f;
+    margin-top: 0;
+    margin-bottom: 1rem;
 }
 
 .dia,
@@ -107,35 +116,219 @@ main {
 .garden {
     border-top: .5px solid gray;
     padding: 30px;
-
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
 }
 
-/*c5EaCC*/
+
+.dia h4, 
+.con h4,
+.garden h4 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    
+} 
+
+.dia p, 
+.con p,
+.garden p {
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 500px;
+    color: #40614c;
+}
+
+.dia img, 
+.con img,
+.garden img {
+    width: 320px;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+
 /*-------------------- Media Queries --------------------*/
 /* For tablet */
 @media screen and (min-width: 768px) {
+
+    .video-overlay h1 {
+        font-size:  1.8rem; 
+        font-weight: bold;
+    }
+
+    .video-overlay p {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+  
+    }
+    .hero-btn {
+        padding: 0.8rem 1.5rem;
+    }
+    .statistics {
+        padding: 80px 40px;
+    }
+
+     .statistics h2 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+     }
+     .stat {
+        gap: 20px;
+     }
+     .stat-sec {
+        padding: 40px 25px;
+     }
+    .stat-sec p {
+        font-size: 1.5rem;
+    }
+
+    .simple {
+        padding: 100px 60px;
+        gap: 15px;
+       
+    }
+    .simple h2 {
+        font-size: 3rem;;
+    }
+    .simple h4{
+        font-size: 1.5rem;
+
+    }
+
+    .dia, 
+    .garden {
+        flex-direction: row;
+        text-align: left;
+        gap: 30px;
+    }
+
+    .con {
+        flex-direction: row-reverse;
+        text-align: left;
+        gap: 30px;
+    }
+    .dia p ,
+    .con p,
+    .garden p  {
+        font-size: 1.1rem;
+
+    }
+
+    .con img {
+        aspect-ratio: 4/3;
+    }
+
 }
 
 /* For large devices */
 @media screen and (min-width: 1024px) {
-    .statistics {
+.header-container {
+    height: 70vh; 
+}
+ .video-overlay h1 {
+    font-size:  3rem;
+    font-weight: bold;
+}
+
+.video-overlay p {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem; 
+  margin-top: 10px;
+}
+.hero-btn {
+    padding: 0.8rem 1.5rem;
+}
+.statistics {
     padding: 60px;
 }
 .statistics h2 {
     font-size: 50px;
 }
-    .stat {
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        font-size: 30px;
-    }
+.stat {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    font-size: 30px;
+}
+
+.simple { 
+    gap: 15px;
+}
 
 .dia,
 .con,
 .garden {
+    flex-wrap: nowrap;
     padding: 50px;
     text-align: left;
+}
+
+.dia img, 
+.con img,
+.garden img  {
+    width: 320px;
+    height: 240px;
 }
 .des {
     font-size: 15px;
 }
+}
+
+@media screen and (min-width: 1440px) {
+
+  .dia,
+  .con, 
+  .garden {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5rem; 
+      padding: 40px 80px;   
+      width: 100%;
+      max-width: 1300px;
+      margin: 0 auto;
+  }
+
+  
+  .con {
+      flex-direction: row-reverse;
+  }
+
+  .dia h4, 
+  .con h4,
+  .garden h4 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+  }
+
+  .dia p, 
+  .con p,
+  .garden p {
+      font-size: 1.3rem;
+      line-height: 1.7;
+      max-width: 600px; 
+      margin: 0;
+  }
+
+ 
+  .dia div,
+  .con div,
+  .garden div {
+      flex: 1;
+      max-width: 600px;
+  }
+
+
+  .dia img, 
+  .con img,
+  .garden img {
+      flex: 1;
+      width: 500px;
+      height: 300px;
+      border-radius: 1rem;
+      object-fit: cover;
+  }
 }
