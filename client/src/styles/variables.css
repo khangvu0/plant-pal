@@ -12,6 +12,10 @@
     --body-color: #ffffff;
     --off-white-color: #dad7cd;
 
+    --footer-bg: #f1f5f1;
+    --text-dark: #2f2f2f;
+    --text-muted: #666666;
+
     --font-logo: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
     --font-title: 'garamond-premier-pro', 'Poppins', sans-serif;
     --font-text: 'DS Trade Gothic', 'Poppins', sans-serif;
