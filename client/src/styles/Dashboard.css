@@ -72,6 +72,7 @@
     border-radius: 16px;
     padding: 1rem 1.2rem;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    margin: 0 0.5rem;
 }
 
 .plant-photo {
@@ -245,4 +246,31 @@
     padding: 0.7rem 1.2rem;
     border-radius: 0 8px 8px 0;
     cursor: pointer;
+}
+
+/*-------------------- Media Queries --------------------*/
+/* For tablet */
+@media screen and (min-width: 768px) {
+    .plant-collection {
+        margin: 0 1rem;
+    }
+
+    .plant-card {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* For large devices */
+@media screen and (min-width: 1024px) {
+    .plant-grid {
+        gap: 2rem;
+    }
+
+    .plant-collection {
+        margin: 0 1.5rem;
+    }
+
+    .plant-card {
+        margin-bottom: 1rem;
+    }
 }
