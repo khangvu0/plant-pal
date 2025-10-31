@@ -33,7 +33,10 @@ export default function Dashboard() {
     const [newPlant, setNewPlant] = useState({ nickname: '', species: '' });
 
     const [chatHistory, setChatHistory] = useState([
-    { role: 'assistant', content: 'Hi! I’m Plant Pal🌱. How can I help today?' },
+        {
+            role: 'assistant',
+            content: 'Hi! I’m Plant Pal🌱. How can I help today?',
+        },
     ]);
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [chatError, setChatError] = useState(null);
@@ -56,7 +59,8 @@ export default function Dashboard() {
 
             const plant = {
                 id: match.id,
-                name: newPlant.nickname || match.common_name || newPlant.species,
+                name:
+                    newPlant.nickname || match.common_name || newPlant.species,
                 species: match.scientific_name || newPlant.species,
                 watering: match.watering_frequency || 'Water as needed',
                 light: match.sunlight || 'Information not available',
@@ -85,33 +89,40 @@ export default function Dashboard() {
         setChatError(null);
         setIsChatLoading(true);
 
-    try {   
-        const response = await fetch('/api/ai/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ history: chatHistory, prompt }),
-        });
+        try {
+            const response = await fetch('/api/ai/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ history: chatHistory, prompt }),
+            });
 
-        if (!response.ok) throw new Error(`AI request failed (${response.status})`);
-        const { history: serverHistory } = await response.json();
-        setChatHistory(serverHistory ?? nextHistory);
-    } catch (error) {
+            if (!response.ok)
+                throw new Error(`AI request failed (${response.status})`);
+            const { history: serverHistory } = await response.json();
+            setChatHistory(serverHistory ?? nextHistory);
+        } catch (error) {
             console.error('AI Botanist error:', error);
             setChatHistory([
-            ...nextHistory,
-            { role: 'assistant', content: 'Sorry, my greenhouse is offline. :( Please try again soon.' },
-        ]);
-        setChatError('The AI botanist is temporarily unavailable.');
-    } finally {
-        setIsChatLoading(false);
-    }
+                ...nextHistory,
+                {
+                    role: 'assistant',
+                    content:
+                        'Sorry, my greenhouse is offline. :( Please try again soon.',
+                },
+            ]);
+            setChatError('The AI botanist is temporarily unavailable.');
+        } finally {
+            setIsChatLoading(false);
+        }
     };
 
     return (
         <div className="dashboard">
             <header className="dashboard--header">
-                <h2>PlantPal Care Assistant</h2>
-                <p>
+                <h2 className="dashboard--header_title">
+                    PlantPal Care Assistant
+                </h2>
+                <p className="dashboard--header_description">
                     Manage your plant collection and chat with your AI botanist
                     for sustainable care advice
                 </p>
@@ -138,18 +149,19 @@ export default function Dashboard() {
             {activeTab === 'collection' && (
                 <section className="plant-collection">
                     <div className="plant-collection-header">
-                        <h3>Your Plants ({plants.length})</h3>
+                        <h3 className="collection-title">
+                            Your Plants ({plants.length})
+                        </h3>
                         <Button
                             className="add-plant-btn"
                             onClick={() => setShowModal(true)}>
                             + Add Plant
                         </Button>
                         {showModal && (
-                        <div className="custom-modal-overlay">
-                        <div className="custom-modal">
-                        </div>
-                        </div>
-)}
+                            <div className="custom-modal-overlay">
+                                <div className="custom-modal"></div>
+                            </div>
+                        )}
                     </div>
                     <p>Manage and track your growing collection</p>
 
@@ -165,7 +177,9 @@ export default function Dashboard() {
                                 )}
                                 <div className="plant-header">
                                     <div>
-                                        <h4>{plant.name}</h4>
+                                        <h4 className="plant-name">
+                                            {plant.name}
+                                        </h4>
                                         <p className="plant-species">
                                             {plant.species}
                                         </p>
@@ -183,7 +197,7 @@ export default function Dashboard() {
                                     <div className="plant-row">
                                         <img src={waterIcon} alt="water icon" />
                                         <div>
-                                            <strong>Watering</strong>
+                                            <strong>Watering Interval</strong>
                                             <p>{plant.watering}</p>
                                         </div>
                                     </div>
@@ -251,23 +265,33 @@ export default function Dashboard() {
             {activeTab === 'ai' && (
                 <section className="ai-botanist">
                     <div className="chat-box">
-                    {chatHistory.map((turn, index) => (
-                        <div key={index} className={`chat-message ${turn.role === 'user' ? 'user' : 'bot'}`}>
-                        {turn.content}
-                        </div>
-                    ))}
-                    {isChatLoading && <div className="chat-message bot typing">PlantPal is thinking…</div>}
+                        {chatHistory.map((turn, index) => (
+                            <div
+                                key={index}
+                                className={`chat-message ${
+                                    turn.role === 'user' ? 'user' : 'bot'
+                                }`}>
+                                {turn.content}
+                            </div>
+                        ))}
+                        {isChatLoading && (
+                            <div className="chat-message bot typing">
+                                PlantPal is thinking…
+                            </div>
+                        )}
                     </div>
                     {chatError && <p className="chat-error">{chatError}</p>}
                     <form className="chat-input" onSubmit={handleChatSubmit}>
-                    <input
-                        type="text"
-                        placeholder="Ask your AI botanist..."
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        disabled={isChatLoading}
-                    />
-                    <button type="submit" disabled={isChatLoading}>Send</button>
+                        <input
+                            type="text"
+                            placeholder="Ask your AI botanist..."
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                            disabled={isChatLoading}
+                        />
+                        <button type="submit" disabled={isChatLoading}>
+                            Send
+                        </button>
                     </form>
                 </section>
             )}

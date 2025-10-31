@@ -10,12 +10,12 @@
     margin-bottom: 2rem;
 }
 
-.dashboard--header h2 {
+.dashboard--header_title {
     color: #126b2c;
     font-weight: 600;
 }
 
-.dashboard--header p {
+.dashboard--header_description {
     color: #216b3b;
     margin: 0.5rem 0 1.5rem;
 }
@@ -44,11 +44,15 @@
 
 .plant-collection-header {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.plant-collection h3 {
+.collection-title {
     color: #14632b;
     margin-bottom: 0.2rem;
+    font-size: 1.75rem;
+    font-weight: 500;
 }
 
 .plant-collection p {
@@ -85,9 +89,11 @@
     align-items: center;
 }
 
-.plant-header h4 {
-    font-size: 1.1rem;
+.plant-name {
+    font-size: 1.2rem;
+    font-weight: 500;
     color: #094f1a;
+    margin-bottom: 0.25rem;
 }
 
 .plant-species {
@@ -116,39 +122,18 @@
     margin-bottom: 0.4rem;
 }
 
-.plant-icon {
-    font-size: 1.4rem;
-    color: #219653;
-}
-
 .plant-notes {
     margin-top: 0.5rem;
     font-size: 0.95rem;
     color: #2a4a2e;
+    max-height: 7.25rem;
+    overflow-y: auto;
 }
 
 .plant-date {
     font-size: 0.85rem;
     color: #3d6441;
     margin-top: 0.3rem;
-}
-
-.add-plant-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: #1ca64c;
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 0.6rem 1.2rem;
-    cursor: pointer;
-    transition: 0.2s ease;
-    position: relative;
-}
-
-.add-plant-btn:hover {
-    background: #168a3e;
 }
 
 /* Modal */
