@@ -1,6 +1,9 @@
 import React from 'react';
 import '../styles/Home.css';
 import headerVideo from '../../public/plant-vid.mp4';
+import plant from '../../public/doc.jpg';
+import water from '../../public/water.jpg';
+import sunlight from '../../public/sunlight.jpg';
 
 export default function Home() {
     return <main> 
@@ -42,23 +45,32 @@ export default function Home() {
                 <p className='des'>Total water + electricity</p>
             </div>
             </div>
-
         </section>
         <section className='simple'>
         <h2> Plant Care Made Simple</h2>
         <h4>Everything you need to grow thriving plants while caring for the environment</h4>
             <div className='dia'>
+                <div className='txt'>
                 <h4>AI Plant Diagnostics</h4>
-                <p>Ask questions, get instant expert advice</p>
+                <p>Ask questions like "Why are my leaves yellow?" and get instant, expert advice tailored
+                    to your plant's needs with sustainable solutions</p>
+                </div>
+                <img src={plant} alt="Plant Diagnostics"/>
             </div>
             <div className='con'>
+                <div className='txt'>
                 <h4>Water Conservation</h4>
                 <p>Learn minimal water techniques and sustainable watering schedules that keep your 
                     plants healthy while saving precious resources </p>
+                </div>
+                <img src={water} alt='water'/>
             </div>
             <div className='garden'> 
-                <h4>Community Garden</h4>
-                <p>Share tips, connect with plant lovers</p>
+                <div className='txt'>
+                <h4>Organic Solutions </h4>
+                <p>Get recommendations for organic nutrients and natural pest control, avoiding harmful synthetic fertilizers and chemical</p>
+                </div>
+                <img src={sunlight} alt='sunlight'/>
             </div>
         </section>
         
