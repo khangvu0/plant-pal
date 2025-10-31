@@ -288,6 +288,7 @@ export default function Dashboard() {
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
                             disabled={isChatLoading}
+                            className="browser-default"
                         />
                         <button type="submit" disabled={isChatLoading}>
                             Send

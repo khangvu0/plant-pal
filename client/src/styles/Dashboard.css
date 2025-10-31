@@ -207,7 +207,7 @@
 }
 
 .chat-message {
-    margin: 0.5rem 0;
+    margin: 0.75rem 0;
     padding: 0.6rem 1rem;
     border-radius: 12px;
     max-width: 80%;
@@ -272,5 +272,20 @@
 
     .plant-card {
         margin-bottom: 1rem;
+    }
+
+    .chat-box {
+        max-width: 700px;
+        height: 475px;
+        margin-bottom: 0.5rem;
+    }
+
+    .chat-message {
+        margin: 1rem 0;
+    }
+
+    .chat-input {
+        max-width: 700px;
+        height: 3rem;
     }
 }
