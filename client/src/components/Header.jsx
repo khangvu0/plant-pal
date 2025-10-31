@@ -49,7 +49,7 @@ export default function Header() {
                                 className={`dropdown_menu ${
                                     isDropdownOpen ? 'show' : ''
                                 }`}>
-                                <li>
+                                <li className="browser-default">
                                     <Link
                                         to="/"
                                         className="dropdown_item"
@@ -57,7 +57,7 @@ export default function Header() {
                                         Home
                                     </Link>
                                 </li>
-                                <li>
+                                <li className="browser-default">
                                     <Link
                                         to="/dashboard"
                                         className="dropdown_item"
@@ -65,7 +65,7 @@ export default function Header() {
                                         Dashboard
                                     </Link>
                                 </li>
-                                <li>
+                                <li className="browser-default">
                                     <Link
                                         to="/register"
                                         className="dropdown_item"
@@ -73,7 +73,7 @@ export default function Header() {
                                         Register
                                     </Link>
                                 </li>
-                                <li>
+                                <li className="browser-default">
                                     <Link
                                         to="/login"
                                         className="dropdown_item"
