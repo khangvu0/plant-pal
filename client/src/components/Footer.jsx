@@ -38,9 +38,26 @@ export default function Footer() {
                 <div className="footer-section">
                     <h2 className="footer-logo">PlantPal</h2>
                     <p className="footer-desc">
-                        Lorem ipsum dolor sit amet, consectetur adipisicing
-                        elit, sed do eiusmod tempor incididunt ut labore.
+                        Nurture your plants, track your eco-impact, and chat
+                        with your personal AI botanist. your all-in-one
+                        companion for a greener lifestyle.
                     </p>
+                </div>
+
+                {/* Socials */}
+                <div className="footer-section">
+                    <h3 className="footer-title">Our Socials</h3>
+                    <div className="social-icons">
+                        <a href="https://www.facebook.com/" target="_blank">
+                            <img src={fbIcon} alt="Facebook icon" />
+                        </a>
+                        <a href="https://www.instagram.com/" target="_blank">
+                            <img src={instaIcon} alt="Instagram icon" />
+                        </a>
+                        <a href="https://www.linkedin.com/" target="_blank">
+                            <img src={linkedInIcon} alt="LinkedIn icon" />
+                        </a>
+                    </div>
                 </div>
 
                 {/* Quick Links */}
@@ -62,22 +79,6 @@ export default function Footer() {
                     </ul>
                 </div>
 
-                {/* Socials */}
-                <div className="footer-section">
-                    <h3 className="footer-title">Our Socials</h3>
-                    <div className="social-icons">
-                        <a href="https://www.facebook.com/" target="_blank">
-                            <img src={fbIcon} alt="Facebook icon" />
-                        </a>
-                        <a href="https://www.instagram.com/" target="_blank">
-                            <img src={instaIcon} alt="Instagram icon" />
-                        </a>
-                        <a href="https://www.linkedin.com/" target="_blank">
-                            <img src={linkedInIcon} alt="LinkedIn icon" />
-                        </a>
-                    </div>
-                </div>
-
                 {/* Newsletter */}
                 <div className="footer-section">
                     <h3 className="footer-title">
@@ -97,7 +98,9 @@ export default function Footer() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                        <button type="submit">SUBSCRIBE</button>
+                        <button className="btn-subscribe" type="submit">
+                            Subscribe
+                        </button>
                         {message && (
                             <p
                                 className={`message ${
@@ -111,7 +114,10 @@ export default function Footer() {
             </div>
 
             <div className="footer-bottom">
-                <p>Copyright © 2025 PlantPal | Khang, Alexander, Jhoana</p>
+                <p>
+                    Copyright © 2025 PlantPal | This project is for educational
+                    purposes only
+                </p>
             </div>
         </footer>
     );
