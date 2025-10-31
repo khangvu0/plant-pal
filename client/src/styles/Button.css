@@ -1,4 +1,4 @@
-.btn {
+.custom-btn {
     display: inline-block;
     background-color: var(--green-color);
     color: white;
@@ -14,18 +14,22 @@
     transition: background-color 0.3s ease;
 }
 
-.btn:hover {
+.custom-btn:hover {
     background-color: var(--dark-green-color);
 }
 
-.btn:active {
+.custom-btn:active {
     transform: scale(0.98);
     box-shadow: none;
 }
 
+.custom-btn:focus {
+    background-color: var(--dark-green-color);
+}
+
 /* -------------------- Sizes -------------------- */
 .btn--small {
-    font-size: 0.8rem;
+    font-size: 1rem;
     padding: 0.375rem 1rem;
 }
 

@@ -15,7 +15,7 @@ export default function Button({
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`btn btn--${size} ${className}`.trim()}>
+            className={`custom-btn btn--${size} ${className}`.trim()}>
             {children}
         </button>
     );
