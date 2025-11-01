@@ -97,7 +97,8 @@ export default function Register() {
             if (error) newErrors[name] = error;
         });
 
-        if (!agreeTerms) newErrors.terms = 'You must agree to the terms';
+        // Terms validation commented out since terms section is commented out
+        // if (!agreeTerms) newErrors.terms = 'You must agree to the terms';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -110,7 +111,14 @@ export default function Register() {
         if (!isValid) return;
 
         try {
-            const res = await axios.post('/api/register', formData);
+            // Transform data to match backend expectations
+            const registrationData = {
+                ...formData,
+                password_hash: formData.password // Backend expects 'password_hash'
+            };
+            delete registrationData.password; // Remove original password field
+            
+            const res = await axios.post('/api/register', registrationData);
             setMessage(res.data.message || 'Account created successfully!');
 
             // Reset
@@ -125,8 +133,9 @@ export default function Register() {
             setAgreeTerms(false);
             setSubmitted(false);
         } catch (err) {
-            setMessage('Registration failed. Please try again.');
-            console.error(err);
+            const errorMessage = err.response?.data?.error || 'Registration failed. Please try again.';
+            setMessage(errorMessage);
+            console.error('Registration error:', err);
         }
     };
 
@@ -220,8 +229,8 @@ export default function Register() {
                     )}
                 </div>
 
-                {/* Terms */}
-                <div className="form--group">
+                {/* Terms - COMMENTED OUT */}
+                {/* <div className="form--group">
                     <div className="register--form__checkbox">
                         <input
                             type="checkbox"
@@ -242,7 +251,7 @@ export default function Register() {
                     {submitted && errors.terms && (
                         <div className="register--error">{errors.terms}</div>
                     )}
-                </div>
+                </div> */}
 
                 <Button size="large" type="submit">
                     Register
@@ -250,4 +259,5 @@ export default function Register() {
             </div>
         </form>
     );
-}
+} 
+
