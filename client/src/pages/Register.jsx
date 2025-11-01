@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Register.css';
 import Button from '../components/Button';
 
 export default function Register() {
+    const { register } = useAuth();
+    const navigate = useNavigate();
+    
     const [formData, setFormData] = useState({
         email: '',
         first_name: '',
@@ -110,32 +114,20 @@ export default function Register() {
         const isValid = validateForm();
         if (!isValid) return;
 
-        try {
-            // Transform data to match backend expectations
-            const registrationData = {
-                ...formData,
-                password_hash: formData.password // Backend expects 'password_hash'
-            };
-            delete registrationData.password; // Remove original password field
-            
-            const res = await axios.post('/api/register', registrationData);
-            setMessage(res.data.message || 'Account created successfully!');
+        // Transform data to match backend expectations
+        const registrationData = {
+            ...formData,
+            password_hash: formData.password // Backend expects 'password_hash'
+        };
 
-            // Reset
-            setErrors({});
-            setValidFields({});
-            setFormData({
-                email: '',
-                first_name: '',
-                last_name: '',
-                password: '',
-            });
-            setAgreeTerms(false);
-            setSubmitted(false);
-        } catch (err) {
-            const errorMessage = err.response?.data?.error || 'Registration failed. Please try again.';
-            setMessage(errorMessage);
-            console.error('Registration error:', err);
+        const result = await register(registrationData);
+        
+        if (result.success) {
+            setMessage(result.message);
+            // Navigate to dashboard after successful registration and login
+            navigate('/dashboard');
+        } else {
+            setMessage(result.message);
         }
     };
 

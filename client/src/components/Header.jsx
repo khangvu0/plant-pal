@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import '../styles/Header.css';
 
 export default function Header() {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -31,6 +34,12 @@ export default function Header() {
         setIsDropdownOpen(false);
     };
 
+    const handleLogout = async () => {
+        await logout();
+        navigate('/');
+        handleLinkClick();
+    };
+
     return (
         <header className="header" id="header">
             <nav className="nav">
@@ -57,30 +66,49 @@ export default function Header() {
                                         Home
                                     </Link>
                                 </li>
-                                <li className="browser-default">
-                                    <Link
-                                        to="/dashboard"
-                                        className="dropdown_item"
-                                        onClick={handleLinkClick}>
-                                        Dashboard
-                                    </Link>
-                                </li>
-                                <li className="browser-default">
-                                    <Link
-                                        to="/register"
-                                        className="dropdown_item"
-                                        onClick={handleLinkClick}>
-                                        Register
-                                    </Link>
-                                </li>
-                                <li className="browser-default">
-                                    <Link
-                                        to="/login"
-                                        className="dropdown_item"
-                                        onClick={handleLinkClick}>
-                                        Login
-                                    </Link>
-                                </li>
+                                {user ? (
+                                    <>
+                                        <li className="browser-default">
+                                            <Link
+                                                to="/dashboard"
+                                                className="dropdown_item"
+                                                onClick={handleLinkClick}>
+                                                Dashboard
+                                            </Link>
+                                        </li>
+                                        <li className="browser-default">
+                                            <span className="dropdown_item user-info">
+                                                Welcome, {user.first_name}!
+                                            </span>
+                                        </li>
+                                        <li className="browser-default">
+                                            <button
+                                                className="dropdown_item logout-btn"
+                                                onClick={handleLogout}>
+                                                Logout
+                                            </button>
+                                        </li>
+                                    </>
+                                ) : (
+                                    <>
+                                        <li className="browser-default">
+                                            <Link
+                                                to="/register"
+                                                className="dropdown_item"
+                                                onClick={handleLinkClick}>
+                                                Register
+                                            </Link>
+                                        </li>
+                                        <li className="browser-default">
+                                            <Link
+                                                to="/login"
+                                                className="dropdown_item"
+                                                onClick={handleLinkClick}>
+                                                Login
+                                            </Link>
+                                        </li>
+                                    </>
+                                )}
                             </ul>
                         </li>
                     </ul>

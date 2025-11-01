@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
 import Button from '../components/Button';
 
 export default function Login() {
+    const { login } = useAuth();
+    const navigate = useNavigate();
+    
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -78,18 +82,14 @@ export default function Login() {
         const isValid = validateForm();
         if (!isValid) return;
 
-        try {
-            const res = await axios.post('/api/login', formData);
-            setMessage(res.data.message || 'Login successful!');
-
-            // Reset form
-            setErrors({});
-            setValidFields({});
-            setFormData({ email: '', password: '' });
-            setSubmitted(false);
-        } catch (err) {
-            setMessage('Login failed. Please check your credentials.');
-            console.error(err);
+        const result = await login(formData.email, formData.password);
+        
+        if (result.success) {
+            setMessage(result.message);
+            // Navigate to dashboard after successful login
+            navigate('/dashboard');
+        } else {
+            setMessage(result.message);
         }
     };
 
