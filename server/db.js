@@ -1,4 +1,8 @@
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Use Railway DATABASE_URL if available, otherwise fallback to local config
 const databaseUrl = process.env.DATABASE_URL;
