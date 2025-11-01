@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import OpenAI from "openai";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, "..", ".env") });
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 // Connection to OpenAI API
 const client = new OpenAI({
