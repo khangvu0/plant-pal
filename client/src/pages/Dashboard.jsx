@@ -1,4 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../styles/Dashboard.css';
 import Button from '../components/Button';
 import editIcon from '/edit.svg';
@@ -7,6 +10,9 @@ import waterIcon from '/water.svg';
 import sunIcon from '/sun.svg';
 
 export default function Dashboard() {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    
     const [activeTab, setActiveTab] = useState('collection');
     const [showModal, setShowModal] = useState(false);
     const [plants, setPlants] = useState([
@@ -161,7 +167,27 @@ export default function Dashboard() {
                 added: new Date().toLocaleDateString(),
             };
 
+            // Save to local state (your existing logic)
             setPlants((prev) => [...prev, plant]);
+            
+            // Also save to database if user is authenticated
+            if (user) {
+                try {
+                    const plantData = {
+                        name: plant.name,
+                        species: plant.species,
+                        watering_frequency: plant.watering,
+                        sunlight: plant.light,
+                        notes: plant.notes,
+                        image_url: plant.imageUrl
+                    };
+                    await axios.post('/api/user/plants', plantData);
+                } catch (dbError) {
+                    console.warn('Failed to save to database:', dbError);
+                    // Plant still shows in UI even if database save fails
+                }
+            }
+            
             setShowModal(false);
             setNewPlant({ nickname: '' });
             setNameQuery('');
@@ -212,6 +238,45 @@ export default function Dashboard() {
         } finally {
             setIsChatLoading(false);
         }
+    };
+
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+        }
+    }, [user, navigate]);
+
+    // Load user's plants from database
+    useEffect(() => {
+        if (user) {
+            loadUserPlants();
+        }
+    }, [user]);
+
+    const loadUserPlants = async () => {
+        try {
+            const response = await axios.get('/api/user/plants');
+            if (response.data.success && response.data.plants.length > 0) {
+                // If user has plants in database, show those instead of samples
+                const dbPlants = response.data.plants.map(plant => ({
+                    ...plant,
+                    watering: plant.watering_frequency || 'Water as needed',
+                    light: plant.sunlight || 'Information not available',
+                    added: plant.created_at ? new Date(plant.created_at).toLocaleDateString() : 'Recently added'
+                }));
+                setPlants(dbPlants);
+            }
+            // If no plants in database, keep the sample plants
+        } catch (error) {
+            console.error('Failed to load plants:', error);
+            // On error, keep the sample plants
+        }
+    };
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login');
     };
 
     return (

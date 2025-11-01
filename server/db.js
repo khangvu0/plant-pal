@@ -1,13 +1,22 @@
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
-const db = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: 'password', 
-  database: 'Plant-Pal', 
-  port: 3306,
-  connectionLimit: 10
-});
+// Load environment variables from .env file
+dotenv.config();
+
+// Use Railway DATABASE_URL if available, otherwise fallback to local config
+const databaseUrl = process.env.DATABASE_URL;
+
+const db = databaseUrl 
+  ? mysql.createPool(databaseUrl)
+  : mysql.createPool({
+      host: 'localhost',
+      user: 'root',
+      password: 'password', 
+      database: 'Plant-Pal', 
+      port: 3306,
+      connectionLimit: 10
+    });
 
 async function verifyDatabaseConnection() {
   try {

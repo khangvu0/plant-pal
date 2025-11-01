@@ -1,9 +1,22 @@
 {
+  "name": "plant-pal",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Plant Pal - Your plant care companion",
+  "scripts": {
+    "build": "cd client && npm install && npm run build",
+    "start": "cd server && npm install && npm start",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "setup-db": "cd server && node setup-production.js"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mysql2": "^3.15.3",
     "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Register.css';
 import Button from '../components/Button';
 
 export default function Register() {
+    const { register } = useAuth();
+    const navigate = useNavigate();
+    
     const [formData, setFormData] = useState({
         email: '',
         first_name: '',
@@ -97,7 +101,8 @@ export default function Register() {
             if (error) newErrors[name] = error;
         });
 
-        if (!agreeTerms) newErrors.terms = 'You must agree to the terms';
+        // Terms validation commented out since terms section is commented out
+        // if (!agreeTerms) newErrors.terms = 'You must agree to the terms';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -109,24 +114,20 @@ export default function Register() {
         const isValid = validateForm();
         if (!isValid) return;
 
-        try {
-            const res = await axios.post('/api/register', formData);
-            setMessage(res.data.message || 'Account created successfully!');
+        // Transform data to match backend expectations
+        const registrationData = {
+            ...formData,
+            password_hash: formData.password // Backend expects 'password_hash'
+        };
 
-            // Reset
-            setErrors({});
-            setValidFields({});
-            setFormData({
-                email: '',
-                first_name: '',
-                last_name: '',
-                password: '',
-            });
-            setAgreeTerms(false);
-            setSubmitted(false);
-        } catch (err) {
-            setMessage('Registration failed. Please try again.');
-            console.error(err);
+        const result = await register(registrationData);
+        
+        if (result.success) {
+            setMessage(result.message);
+            // Navigate to dashboard after successful registration and login
+            navigate('/dashboard');
+        } else {
+            setMessage(result.message);
         }
     };
 
@@ -220,8 +221,8 @@ export default function Register() {
                     )}
                 </div>
 
-                {/* Terms */}
-                <div className="form--group">
+                {/* Terms - COMMENTED OUT */}
+                {/* <div className="form--group">
                     <div className="register--form__checkbox">
                         <input
                             type="checkbox"
@@ -242,7 +243,7 @@ export default function Register() {
                     {submitted && errors.terms && (
                         <div className="register--error">{errors.terms}</div>
                     )}
-                </div>
+                </div> */}
 
                 <Button size="large" type="submit">
                     Register
@@ -250,4 +251,5 @@ export default function Register() {
             </div>
         </form>
     );
-}
+} 
+
