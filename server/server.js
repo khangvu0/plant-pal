@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import { db, verifyDatabaseConnection } from './db.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 import { continueConversation } from './ai.js';
 dotenv.config();
 
@@ -38,9 +40,39 @@ function setCache(cache, key, value) {
 }
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 const SALT_ROUNDS = 10;
+
+// JWT Helper Functions
+const generateToken = (userId, email) => {
+  return jwt.sign(
+    { userId, email },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+};
+
+// Authentication Middleware
+const authenticateToken = (req, res, next) => {
+  const token = req.cookies.authToken;
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied. No token provided.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(403).json({ error: 'Invalid token.' });
+  }
+}
 
 // Open AI API
 app.post("/api/ai/chat", async (req, res, next) => {
@@ -350,6 +382,17 @@ app.post('/api/login', async (req, res) => {
       [user.id]
     );
 
+    // Generate JWT token
+    const token = generateToken(user.id, user.email);
+
+    // Set HTTP-only cookie
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
     res.json({
       message: 'Login successful!',
       success: true,
@@ -363,6 +406,142 @@ app.post('/api/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed. Please check your credentials.' });
+  }
+});
+
+// Check authentication status
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  try {
+    const [users] = await db.execute(
+      'SELECT id, email, first_name, last_name FROM users WHERE id = ?',
+      [req.user.userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      user: users[0]
+    });
+  } catch (error) {
+    console.error('Auth check error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Logout endpoint
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('authToken');
+  res.json({ message: 'Logged out successfully', success: true });
+});
+
+// User Plants API Endpoints
+// Get user's plants
+app.get('/api/user/plants', authenticateToken, async (req, res) => {
+  try {
+    const [plants] = await db.execute(
+      'SELECT plant_id as id, plant_name as name, species, user_id FROM plants WHERE user_id = ?',
+      [req.user.userId]
+    );
+
+    res.json({
+      success: true,
+      plants: plants
+    });
+  } catch (error) {
+    console.error('Get plants error:', error);
+    res.status(500).json({ error: 'Failed to fetch plants' });
+  }
+});
+
+// Add a plant to user's collection
+app.post('/api/user/plants', authenticateToken, async (req, res) => {
+  try {
+    const { name, species, watering_frequency, sunlight, notes, image_url } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Plant name is required' });
+    }
+
+    const [result] = await db.execute(
+      'INSERT INTO plants (user_id, plant_name, species) VALUES (?, ?, ?)',
+      [req.user.userId, name, species || '']
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Plant added successfully',
+      plant: {
+        id: result.insertId,
+        name,
+        species,
+        watering_frequency,
+        sunlight,
+        notes,
+        image_url
+      }
+    });
+  } catch (error) {
+    console.error('Add plant error:', error);
+    res.status(500).json({ error: 'Failed to add plant' });
+  }
+});
+
+// Update a plant
+app.put('/api/user/plants/:id', authenticateToken, async (req, res) => {
+  try {
+    const plantId = req.params.id;
+    const { name, species, watering_frequency, sunlight, notes, image_url } = req.body;
+
+    // Verify plant belongs to user
+    const [existing] = await db.execute(
+      'SELECT plant_id FROM plants WHERE plant_id = ? AND user_id = ?',
+      [plantId, req.user.userId]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Plant not found or not owned by user' });
+    }
+
+    await db.execute(
+      'UPDATE plants SET plant_name = ?, species = ? WHERE plant_id = ? AND user_id = ?',
+      [name, species, plantId, req.user.userId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Plant updated successfully'
+    });
+  } catch (error) {
+    console.error('Update plant error:', error);
+    res.status(500).json({ error: 'Failed to update plant' });
+  }
+});
+
+// Delete a plant
+app.delete('/api/user/plants/:id', authenticateToken, async (req, res) => {
+  try {
+    const plantId = req.params.id;
+
+    // Verify plant belongs to user and delete
+    const [result] = await db.execute(
+      'DELETE FROM plants WHERE plant_id = ? AND user_id = ?',
+      [plantId, req.user.userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Plant not found or not owned by user' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Plant deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete plant error:', error);
+    res.status(500).json({ error: 'Failed to delete plant' });
   }
 });
 
