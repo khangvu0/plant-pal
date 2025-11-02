@@ -12,7 +12,7 @@ import sunIcon from '/sun.svg';
 export default function Dashboard() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    
+
     const [activeTab, setActiveTab] = useState('collection');
     const [showModal, setShowModal] = useState(false);
     const [plants, setPlants] = useState([
@@ -37,7 +37,7 @@ export default function Dashboard() {
     ]);
 
     const [newPlant, setNewPlant] = useState({ nickname: '' });
-    const SUGGEST_DEBOUNCE_MS = 2000; // Delaying the API call by 2 seconds
+    const SUGGEST_DEBOUNCE_MS = 2000;
     const [nameQuery, setNameQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [selectedSuggestion, setSelectedSuggestion] = useState(null);
@@ -45,7 +45,12 @@ export default function Dashboard() {
     const [suggestError, setSuggestError] = useState(null);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [isAddingPlant, setIsAddingPlant] = useState(false);
+    const [editingPlant, setEditingPlant] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [deletingPlant, setDeletingPlant] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+    // Chatbot state
     const [chatHistory, setChatHistory] = useState([
         {
             role: 'assistant',
@@ -55,6 +60,7 @@ export default function Dashboard() {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [chatError, setChatError] = useState(null);
     const [userInput, setUserInput] = useState('');
+
     useEffect(() => {
         const query = nameQuery.trim();
 
@@ -82,9 +88,8 @@ export default function Dashboard() {
                     `/api/plants/suggest?q=${encodeURIComponent(query)}`,
                     { signal: controller.signal }
                 );
-                if (!response.ok) {
+                if (!response.ok)
                     throw new Error(`Suggest failed (${response.status})`);
-                }
                 const { suggestions: data } = await response.json();
                 if (!isActive) return;
                 setSuggestions(Array.isArray(data) ? data : []);
@@ -98,9 +103,7 @@ export default function Dashboard() {
                     setShowSuggestions(false);
                 }
             } finally {
-                if (isActive) {
-                    setIsSuggestLoading(false);
-                }
+                if (isActive) setIsSuggestLoading(false);
             }
         }, SUGGEST_DEBOUNCE_MS);
 
@@ -113,13 +116,14 @@ export default function Dashboard() {
 
     const handleSuggestionSelect = (suggestion) => {
         setSelectedSuggestion(suggestion);
-        setNameQuery(suggestion.common_name || suggestion.scientific_name || '');
+        setNameQuery(
+            suggestion.common_name || suggestion.scientific_name || ''
+        );
         setShowSuggestions(false);
         setSuggestions([]);
         setSuggestError(null);
     };
 
-    // For Perenual API
     const handleAddPlant = async () => {
         if (!selectedSuggestion) {
             setSuggestError('Please choose a plant from the list.');
@@ -129,7 +133,9 @@ export default function Dashboard() {
         setIsAddingPlant(true);
         try {
             const doFetchDetails = async () => {
-                const resp = await fetch(`/api/plants/details/${selectedSuggestion.id}`);
+                const resp = await fetch(
+                    `/api/plants/details/${selectedSuggestion.id}`
+                );
                 return resp;
             };
 
@@ -141,11 +147,15 @@ export default function Dashboard() {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    setSuggestError('Details not available for this plant. Please select another.');
+                    setSuggestError(
+                        'Details not available for this plant. Please select another.'
+                    );
                     return;
                 }
                 if (response.status === 429) {
-                    setSuggestError('Rate limited. Please wait a moment and try again.');
+                    setSuggestError(
+                        'Rate limited. Please wait a moment and try again.'
+                    );
                     return;
                 }
                 throw new Error(`Plant details failed (${response.status})`);
@@ -153,7 +163,7 @@ export default function Dashboard() {
 
             const { plant: details } = await response.json();
             const plant = {
-                id: details.id,
+                id: Date.now(),
                 name:
                     newPlant.nickname ||
                     details.common_name ||
@@ -167,27 +177,7 @@ export default function Dashboard() {
                 added: new Date().toLocaleDateString(),
             };
 
-            // Save to local state (your existing logic)
             setPlants((prev) => [...prev, plant]);
-            
-            // Also save to database if user is authenticated
-            if (user) {
-                try {
-                    const plantData = {
-                        name: plant.name,
-                        species: plant.species,
-                        watering_frequency: plant.watering,
-                        sunlight: plant.light,
-                        notes: plant.notes,
-                        image_url: plant.imageUrl
-                    };
-                    await axios.post('/api/user/plants', plantData);
-                } catch (dbError) {
-                    console.warn('Failed to save to database:', dbError);
-                    // Plant still shows in UI even if database save fails
-                }
-            }
-            
             setShowModal(false);
             setNewPlant({ nickname: '' });
             setNameQuery('');
@@ -201,7 +191,48 @@ export default function Dashboard() {
             setIsAddingPlant(false);
         }
     };
-    // For OpenAI API
+
+    // ---------------- FRONTEND DELETE ----------------
+    const handleDeletePlant = (plant) => {
+        setDeletingPlant(plant);
+        setShowDeleteModal(true);
+    };
+
+    // ---------------- FRONTEND EDIT ----------------
+    const handleEditPlant = (plant) => {
+        setEditingPlant({ ...plant });
+        setShowEditModal(true);
+    };
+
+    const handleEditChange = (field, value) => {
+        setEditingPlant((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleSaveEdit = () => {
+        setPlants((prev) =>
+            prev.map((p) => (p.id === editingPlant.id ? editingPlant : p))
+        );
+        setShowEditModal(false);
+        setEditingPlant(null);
+    };
+
+    const handleCancelEdit = () => {
+        setShowEditModal(false);
+        setEditingPlant(null);
+    };
+
+    const handleConfirmDelete = () => {
+        setPlants((prev) => prev.filter((p) => p.id !== deletingPlant.id));
+        setShowDeleteModal(false);
+        setDeletingPlant(null);
+    };
+
+    const handleCancelDelete = () => {
+        setShowDeleteModal(false);
+        setDeletingPlant(null);
+    };
+
+    // Chatbot submit (unchanged)
     const handleChatSubmit = async (event) => {
         event.preventDefault();
         const prompt = userInput.trim();
@@ -242,37 +273,8 @@ export default function Dashboard() {
 
     // Redirect to login if not authenticated
     useEffect(() => {
-        if (!user) {
-            navigate('/login');
-        }
+        if (!user) navigate('/login');
     }, [user, navigate]);
-
-    // Load user's plants from database
-    useEffect(() => {
-        if (user) {
-            loadUserPlants();
-        }
-    }, [user]);
-
-    const loadUserPlants = async () => {
-        try {
-            const response = await axios.get('/api/user/plants');
-            if (response.data.success && response.data.plants.length > 0) {
-                // If user has plants in database, show those instead of samples
-                const dbPlants = response.data.plants.map(plant => ({
-                    ...plant,
-                    watering: plant.watering_frequency || 'Water as needed',
-                    light: plant.sunlight || 'Information not available',
-                    added: plant.created_at ? new Date(plant.created_at).toLocaleDateString() : 'Recently added'
-                }));
-                setPlants(dbPlants);
-            }
-            // If no plants in database, keep the sample plants
-        } catch (error) {
-            console.error('Failed to load plants:', error);
-            // On error, keep the sample plants
-        }
-    };
 
     const handleLogout = async () => {
         await logout();
@@ -349,10 +351,21 @@ export default function Dashboard() {
                                         </p>
                                     </div>
                                     <div className="plant-actions">
-                                        <img src={editIcon} alt="edit icon" />
+                                        <img
+                                            src={editIcon}
+                                            alt="edit icon"
+                                            className="icon"
+                                            onClick={() =>
+                                                handleEditPlant(plant)
+                                            }
+                                        />
                                         <img
                                             src={deleteIcon}
                                             alt="delete icon"
+                                            className="icon delete"
+                                            onClick={() =>
+                                                handleDeletePlant(plant)
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -381,6 +394,7 @@ export default function Dashboard() {
                         ))}
                     </div>
 
+                    {/* Existing Add Plant Modal */}
                     {showModal && (
                         <div className="custom-modal-overlay">
                             <div className="custom-modal">
@@ -409,7 +423,10 @@ export default function Dashboard() {
                                             setSuggestError(null);
                                         }}
                                         onFocus={() => {
-                                            if (suggestions.length > 0 && !selectedSuggestion) {
+                                            if (
+                                                suggestions.length > 0 &&
+                                                !selectedSuggestion
+                                            ) {
                                                 setShowSuggestions(true);
                                             }
                                         }}
@@ -443,32 +460,40 @@ export default function Dashboard() {
                                     {showSuggestions &&
                                         suggestions.length > 0 && (
                                             <ul className="plant-suggest__list">
-                                                {suggestions.map((suggestion, index) => {
-                                                    const primary =
-                                                        suggestion.common_name ||
-                                                        suggestion.scientific_name ||
-                                                        'Unnamed plant';
-                                                    const secondary =
-                                                        suggestion.scientific_name &&
-                                                        suggestion.scientific_name !==
-                                                            suggestion.common_name
-                                                            ? ` — ${suggestion.scientific_name}`
-                                                            : '';
-                                                    return (
-                                                        <li
-                                                            key={suggestion.id}
-                                                            className={`plant-suggest__item`}
-                                                            onMouseDown={(event) => {
-                                                                event.preventDefault();
-                                                                handleSuggestionSelect(suggestion);
-                                                            }}>
-                                                            <span className="plant-suggest__primary">
-                                                                {primary}
-                                                                {secondary}
-                                                            </span>
-                                                        </li>
-                                                    );
-                                                })}
+                                                {suggestions.map(
+                                                    (suggestion) => {
+                                                        const primary =
+                                                            suggestion.common_name ||
+                                                            suggestion.scientific_name ||
+                                                            'Unnamed plant';
+                                                        const secondary =
+                                                            suggestion.scientific_name &&
+                                                            suggestion.scientific_name !==
+                                                                suggestion.common_name
+                                                                ? ` — ${suggestion.scientific_name}`
+                                                                : '';
+                                                        return (
+                                                            <li
+                                                                key={
+                                                                    suggestion.id
+                                                                }
+                                                                className="plant-suggest__item"
+                                                                onMouseDown={(
+                                                                    event
+                                                                ) => {
+                                                                    event.preventDefault();
+                                                                    handleSuggestionSelect(
+                                                                        suggestion
+                                                                    );
+                                                                }}>
+                                                                <span className="plant-suggest__primary">
+                                                                    {primary}
+                                                                    {secondary}
+                                                                </span>
+                                                            </li>
+                                                        );
+                                                    }
+                                                )}
                                             </ul>
                                         )}
                                 </div>
@@ -491,6 +516,75 @@ export default function Dashboard() {
                                             setNameQuery('');
                                             setSuggestError(null);
                                         }}>
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Edit Modal */}
+                    {showEditModal && editingPlant && (
+                        <div className="custom-modal-overlay">
+                            <div className="custom-modal">
+                                <h3>Edit Plant</h3>
+                                <label>Name</label>
+                                <input
+                                    type="text"
+                                    value={editingPlant.name}
+                                    onChange={(e) =>
+                                        handleEditChange('name', e.target.value)
+                                    }
+                                />
+                                <label>Notes</label>
+                                <textarea
+                                    value={editingPlant.notes}
+                                    onChange={(e) =>
+                                        handleEditChange(
+                                            'notes',
+                                            e.target.value
+                                        )
+                                    }
+                                    style={{
+                                        minHeight: '80px',
+                                        padding: '0.5rem',
+                                        borderRadius: '8px',
+                                        border: '1px solid #b6e6b8',
+                                    }}
+                                />
+                                <div className="custom-modal-actions">
+                                    <button onClick={handleSaveEdit}>
+                                        Save
+                                    </button>
+                                    <button
+                                        className="cancel"
+                                        onClick={handleCancelEdit}>
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Delete Modal */}
+                    {showDeleteModal && deletingPlant && (
+                        <div className="custom-modal-overlay">
+                            <div className="custom-modal">
+                                <h3>Confirm Delete</h3>
+                                <p>
+                                    Are you sure you want to delete{' '}
+                                    <strong>{deletingPlant.name}</strong> from
+                                    your collection?
+                                </p>
+                                <div className="custom-modal-actions">
+                                    <button
+                                        className="delete"
+                                        onClick={handleConfirmDelete}>
+                                        Delete
+                                    </button>
+                                    <button
+                                        className="cancel"
+                                        onClick={handleCancelDelete}>
                                         Cancel
                                     </button>
                                 </div>
@@ -527,7 +621,6 @@ export default function Dashboard() {
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
                             disabled={isChatLoading}
-                            className="browser-default"
                         />
                         <button type="submit" disabled={isChatLoading}>
                             Send
