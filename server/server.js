@@ -7,7 +7,7 @@ import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
-import { continueConversation } from './ai.js';
+import { continueConversation, generateInsights } from './ai.js';
 dotenv.config();
 
 
@@ -48,6 +48,40 @@ app.use(express.json());
 app.use(cookieParser());
 const SALT_ROUNDS = 10;
 
+async function getUserPlants(userId) {
+  const [plants] = await db.execute(
+    `SELECT 
+      plant_id as id,
+      plant_name as name,
+      species,
+      watering_frequency,
+      sunlight,
+      notes,
+      image_url,
+      created_at
+    FROM plants
+    WHERE user_id = ?`,
+    [userId]
+  );
+  return plants;
+}
+
+function buildPlantContext(plants = []) {
+  if (!Array.isArray(plants) || plants.length === 0) {
+    return null;
+  }
+
+  const details = plants
+    .map((plant, index) => {
+      const name = plant.name || `Plant ${index + 1}`;
+      const species = plant.species ? ` (${plant.species})` : '';
+      return `• ${name}${species}`;
+    })
+    .join('\n');
+
+  return `The authenticated user has the following plants:\n${details}\nUse this information to ground your advice, tailoring suggestions to the existing collection.`;
+}
+
 // JWT Helper Functions
 const generateToken = (userId, email) => {
   return jwt.sign(
@@ -80,7 +114,21 @@ app.post("/api/ai/chat", async (req, res, next) => {
         const { history = [], prompt } = req.body ?? {};
         if (!prompt) return res.status(400).json({ error: "missing_prompt" });
 
-        const updatedHistory = await continueConversation(history, prompt);
+        let context = null;
+        try {
+            const token = req.cookies?.authToken;
+            if (token) {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                if (decoded?.userId) {
+                    const plants = await getUserPlants(decoded.userId);
+                    context = buildPlantContext(plants);
+                }
+            }
+        } catch (contextError) {
+            console.warn('AI chat context unavailable:', contextError.message);
+        }
+
+        const updatedHistory = await continueConversation(history, prompt, { context });
         res.json({ history: updatedHistory });
     } catch (err) {
         next(err);
@@ -437,12 +485,46 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ message: 'Logged out successfully', success: true });
 });
 
+app.get('/api/ai/insights', authenticateToken, async (req, res) => {
+  try {
+    const plants = await getUserPlants(req.user.userId);
+    if (!Array.isArray(plants) || plants.length === 0) {
+      return res.json({
+        success: true,
+        insights: {
+          co2_kg_per_year: 0,
+          summary: 'Start your collection to see climate impact insights here.',
+          suggested_species: 'Snake plant',
+          suggestion_reason: 'Snake plants are hardy starters that thrive in a variety of conditions and help remove indoor pollutants.',
+        },
+      });
+    }
+
+    const insights = await generateInsights(plants);
+    res.json({ success: true, insights });
+  } catch (error) {
+    console.error('Insights generation error:', error);
+    const status = error.message === 'OPENAI_API_KEY is missing' ? 503 : 500;
+    res.status(status).json({ error: 'Failed to generate insights' });
+  }
+});
+
 // User Plants API Endpoints
 // Get user's plants
 app.get('/api/user/plants', authenticateToken, async (req, res) => {
   try {
     const [plants] = await db.execute(
-      'SELECT plant_id as id, plant_name as name, species, user_id FROM plants WHERE user_id = ?',
+      `SELECT 
+        plant_id as id,
+        plant_name as name,
+        species,
+        watering_frequency,
+        sunlight,
+        notes,
+        image_url,
+        created_at
+      FROM plants
+      WHERE user_id = ?`,
       [req.user.userId]
     );
 
@@ -459,29 +541,83 @@ app.get('/api/user/plants', authenticateToken, async (req, res) => {
 // Add a plant to user's collection
 app.post('/api/user/plants', authenticateToken, async (req, res) => {
   try {
-    const { name, species, watering_frequency, sunlight, notes, image_url } = req.body;
+    const {
+      name,
+      species,
+      watering_frequency,
+      sunlight,
+      notes,
+      image_url
+    } = req.body;
 
-    if (!name) {
+    const trimmedName = typeof name === 'string' ? name.trim() : '';
+    if (!trimmedName) {
       return res.status(400).json({ error: 'Plant name is required' });
     }
 
-    const [result] = await db.execute(
-      'INSERT INTO plants (user_id, plant_name, species) VALUES (?, ?, ?)',
-      [req.user.userId, name, species || '']
-    );
+    const trimmedSpecies = typeof species === 'string' ? species.trim() : '';
+    const normalizeOptional = (value) => {
+      if (typeof value === 'string') {
+        const cleaned = value.trim();
+        return cleaned.length > 0 ? cleaned : null;
+      }
+      return value ?? null;
+    };
 
-    res.status(201).json({
-      success: true,
-      message: 'Plant added successfully',
-      plant: {
-        id: result.insertId,
-        name,
+    const normalizedPlant = {
+      name: trimmedName,
+      species: trimmedSpecies,
+      watering_frequency: normalizeOptional(watering_frequency),
+      sunlight: normalizeOptional(sunlight),
+      notes: normalizeOptional(notes),
+      image_url: normalizeOptional(image_url)
+    };
+
+    const [result] = await db.execute(
+      `INSERT INTO plants (
+        user_id,
+        plant_name,
         species,
         watering_frequency,
         sunlight,
         notes,
         image_url
-      }
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        req.user.userId,
+        normalizedPlant.name,
+        normalizedPlant.species,
+        normalizedPlant.watering_frequency,
+        normalizedPlant.sunlight,
+        normalizedPlant.notes,
+        normalizedPlant.image_url
+      ]
+    );
+
+    const [rows] = await db.execute(
+      `SELECT 
+        plant_id as id,
+        plant_name as name,
+        species,
+        watering_frequency,
+        sunlight,
+        notes,
+        image_url,
+        created_at
+      FROM plants
+      WHERE plant_id = ? AND user_id = ?`,
+      [result.insertId, req.user.userId]
+    );
+
+    const inserted = rows?.[0];
+    if (!inserted) {
+      return res.status(500).json({ error: 'Failed to load inserted plant' });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Plant added successfully',
+      plant: inserted
     });
   } catch (error) {
     console.error('Add plant error:', error);
@@ -495,9 +631,17 @@ app.put('/api/user/plants/:id', authenticateToken, async (req, res) => {
     const plantId = req.params.id;
     const { name, species, watering_frequency, sunlight, notes, image_url } = req.body;
 
-    // Verify plant belongs to user
+    // Verify plant belongs to user & fetch current values
     const [existing] = await db.execute(
-      'SELECT plant_id FROM plants WHERE plant_id = ? AND user_id = ?',
+      `SELECT 
+        plant_name,
+        species,
+        watering_frequency,
+        sunlight,
+        notes,
+        image_url
+      FROM plants
+      WHERE plant_id = ? AND user_id = ?`,
       [plantId, req.user.userId]
     );
 
@@ -505,14 +649,75 @@ app.put('/api/user/plants/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Plant not found or not owned by user' });
     }
 
+    const current = existing[0];
+    const normalizeOptional = (value, fallback) => {
+      if (typeof value === 'string') {
+        const cleaned = value.trim();
+        return cleaned.length > 0 ? cleaned : null;
+      }
+      return value ?? fallback ?? null;
+    };
+
+    const nextValues = {
+      name:
+        typeof name === 'string' && name.trim().length > 0
+          ? name.trim()
+          : current.plant_name,
+      species:
+        typeof species === 'string'
+          ? species.trim()
+          : (current.species ?? ''),
+      watering_frequency: normalizeOptional(
+        watering_frequency,
+        current.watering_frequency
+      ),
+      sunlight: normalizeOptional(sunlight, current.sunlight),
+      notes: normalizeOptional(notes, current.notes),
+      image_url: normalizeOptional(image_url, current.image_url)
+    };
+
     await db.execute(
-      'UPDATE plants SET plant_name = ?, species = ? WHERE plant_id = ? AND user_id = ?',
-      [name, species, plantId, req.user.userId]
+      `UPDATE plants
+        SET plant_name = ?,
+            species = ?,
+            watering_frequency = ?,
+            sunlight = ?,
+            notes = ?,
+            image_url = ?
+      WHERE plant_id = ? AND user_id = ?`,
+      [
+        nextValues.name,
+        nextValues.species,
+        nextValues.watering_frequency,
+        nextValues.sunlight,
+        nextValues.notes,
+        nextValues.image_url,
+        plantId,
+        req.user.userId
+      ]
     );
+
+    const [rows] = await db.execute(
+      `SELECT 
+        plant_id as id,
+        plant_name as name,
+        species,
+        watering_frequency,
+        sunlight,
+        notes,
+        image_url,
+        created_at
+      FROM plants
+      WHERE plant_id = ? AND user_id = ?`,
+      [plantId, req.user.userId]
+    );
+
+    const updated = rows?.[0];
 
     res.json({
       success: true,
-      message: 'Plant updated successfully'
+      message: 'Plant updated successfully',
+      plant: updated
     });
   } catch (error) {
     console.error('Update plant error:', error);
