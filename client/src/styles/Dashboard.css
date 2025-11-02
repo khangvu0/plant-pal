@@ -62,7 +62,7 @@
 
 .plant-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 1.5rem;
 }
 
@@ -209,8 +209,8 @@
     cursor: pointer;
 }
 
-.plant-suggest__item:hover { 
-    background: #e8f8ed; 
+.plant-suggest__item:hover {
+    background: #e8f8ed;
 }
 
 .plant-suggest__primary {
