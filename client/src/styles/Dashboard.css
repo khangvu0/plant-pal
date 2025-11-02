@@ -20,6 +20,48 @@
     margin: 0.5rem 0 1.5rem;
 }
 
+.dashboard--insights {
+    margin: 1.5rem auto 2rem;
+    max-width: 960px;
+}
+
+.insights-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.insight-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 14px;
+    padding: 1.2rem;
+    text-align: left;
+    border: 1px solid rgba(27, 133, 62, 0.18);
+    box-shadow: 0 4px 12px rgba(34, 78, 45, 0.08);
+}
+
+.insight-card h4 {
+    margin-bottom: 0.6rem;
+    color: #115d29;
+}
+
+.insight-highlight {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #0f7a37;
+}
+
+.insights-status,
+.insights-error {
+    margin: 0;
+    font-weight: 500;
+    color: #115d29;
+}
+
+.insights-error {
+    color: #d93a3a;
+}
+
 .dashboard--tabs {
     display: inline-flex;
     background: #fff;
@@ -90,6 +132,26 @@
     align-items: center;
 }
 
+.plant-edit-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.plant-edit-input {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid #b6e6b8;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #094f1a;
+}
+
+.plant-edit-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .plant-name {
     font-size: 1.2rem;
     font-weight: 500;
@@ -102,14 +164,59 @@
     color: #387c49;
 }
 
-.plant-actions .icon {
-    margin-left: 0.5rem;
-    cursor: pointer;
-    color: #1a7d35;
+.plant-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.plant-actions .delete {
-    color: #d93a3a;
+.icon-button {
+    border: none;
+    background: transparent;
+    padding: 0.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.icon-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.icon-button .icon {
+    width: 22px;
+    height: 22px;
+}
+
+.plant-action-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.plant-action-btn.save {
+    background: #1ca64c;
+    color: #fff;
+}
+
+.plant-action-btn.cancel {
+    background: rgba(28, 166, 76, 0.12);
+    color: #0f7a37;
+}
+
+.plant-action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.plant-action-status {
+    color: #0f7a37;
+    font-weight: 500;
 }
 
 .plant-details {
@@ -137,6 +244,18 @@
     margin-top: 0.3rem;
 }
 
+.plant-action-error {
+    color: #d93a3a;
+    margin: 0.5rem 0;
+    font-weight: 500;
+}
+
+.collection-empty {
+    color: #3a7a4a;
+    margin: 1.5rem 0;
+    font-style: italic;
+}
+
 /* Modal */
 .custom-modal-overlay {
     position: fixed;
@@ -159,6 +278,59 @@
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
+}
+
+.confirm-modal {
+    max-width: 420px;
+    width: 90%;
+}
+
+.confirm-modal h3 {
+    margin-bottom: 0.5rem;
+    color: #0f7a37;
+}
+
+.confirm-modal p {
+    margin: 0;
+    color: #245635;
+    line-height: 1.45;
+}
+
+.confirm-plant-name {
+    color: #116c33;
+    font-weight: 600;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.2rem;
+}
+
+.confirm-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 0.45rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.confirm-btn.secondary {
+    background: rgba(28, 166, 76, 0.12);
+    color: #0f7a37;
+}
+
+.confirm-btn.danger {
+    background: #d93a3a;
+    color: #fff;
+}
+
+.confirm-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .custom-modal input {
