@@ -36,7 +36,15 @@ export default function Dashboard() {
         },
     ]);
 
-    const [newPlant, setNewPlant] = useState({ nickname: '', species: '' });
+    const [newPlant, setNewPlant] = useState({ nickname: '' });
+    const SUGGEST_DEBOUNCE_MS = 2000; // Delaying the API call by 2 seconds
+    const [nameQuery, setNameQuery] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
+    const [selectedSuggestion, setSelectedSuggestion] = useState(null);
+    const [isSuggestLoading, setIsSuggestLoading] = useState(false);
+    const [suggestError, setSuggestError] = useState(null);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isAddingPlant, setIsAddingPlant] = useState(false);
 
     const [chatHistory, setChatHistory] = useState([
         {
@@ -47,31 +55,115 @@ export default function Dashboard() {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [chatError, setChatError] = useState(null);
     const [userInput, setUserInput] = useState('');
-    // Enhanced Perenual API with database integration
-    const handleAddPlant = async () => {
-        if (!newPlant.species.trim()) return;
+    useEffect(() => {
+        const query = nameQuery.trim();
 
+        if (selectedSuggestion) {
+            setIsSuggestLoading(false);
+            setShowSuggestions(false);
+            return;
+        }
+        if (query.length < 2) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            setIsSuggestLoading(false);
+            setSuggestError(null);
+            return;
+        }
+
+        let isActive = true;
+        const controller = new AbortController();
+        setIsSuggestLoading(true);
+        setSuggestError(null);
+
+        const timer = setTimeout(async () => {
+            try {
+                const response = await fetch(
+                    `/api/plants/suggest?q=${encodeURIComponent(query)}`,
+                    { signal: controller.signal }
+                );
+                if (!response.ok) {
+                    throw new Error(`Suggest failed (${response.status})`);
+                }
+                const { suggestions: data } = await response.json();
+                if (!isActive) return;
+                setSuggestions(Array.isArray(data) ? data : []);
+                setShowSuggestions(true);
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                console.error('Plant suggest error:', error);
+                if (isActive) {
+                    setSuggestError('Unable to search plants right now.');
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                }
+            } finally {
+                if (isActive) {
+                    setIsSuggestLoading(false);
+                }
+            }
+        }, SUGGEST_DEBOUNCE_MS);
+
+        return () => {
+            isActive = false;
+            controller.abort();
+            clearTimeout(timer);
+        };
+    }, [nameQuery, selectedSuggestion]);
+
+    const handleSuggestionSelect = (suggestion) => {
+        setSelectedSuggestion(suggestion);
+        setNameQuery(suggestion.common_name || suggestion.scientific_name || '');
+        setShowSuggestions(false);
+        setSuggestions([]);
+        setSuggestError(null);
+    };
+
+    // For Perenual API
+    const handleAddPlant = async () => {
+        if (!selectedSuggestion) {
+            setSuggestError('Please choose a plant from the list.');
+            return;
+        }
+
+        setIsAddingPlant(true);
         try {
-            const response = await fetch(
-                `/api/plants?q=${encodeURIComponent(newPlant.species.trim())}`
-            );
-            if (!response.ok) {
-                throw new Error(`Plant search failed (${response.status})`);
+            const doFetchDetails = async () => {
+                const resp = await fetch(`/api/plants/details/${selectedSuggestion.id}`);
+                return resp;
+            };
+
+            let response = await doFetchDetails();
+            if (response.status === 429) {
+                await new Promise((r) => setTimeout(r, 2500));
+                response = await doFetchDetails();
             }
 
-            const { data } = await response.json();
-            const match = Array.isArray(data) ? data[0] : null;
-            if (!match) throw new Error('No results found for that species');
+            if (!response.ok) {
+                if (response.status === 404) {
+                    setSuggestError('Details not available for this plant. Please select another.');
+                    return;
+                }
+                if (response.status === 429) {
+                    setSuggestError('Rate limited. Please wait a moment and try again.');
+                    return;
+                }
+                throw new Error(`Plant details failed (${response.status})`);
+            }
 
+            const { plant: details } = await response.json();
             const plant = {
-                id: match.id,
+                id: details.id,
                 name:
-                    newPlant.nickname || match.common_name || newPlant.species,
-                species: match.scientific_name || newPlant.species,
-                watering: match.watering_frequency || 'Water as needed',
-                light: match.sunlight || 'Information not available',
-                notes: match.description || '',
-                imageUrl: match.image,
+                    newPlant.nickname ||
+                    details.common_name ||
+                    details.scientific_name ||
+                    nameQuery,
+                species: details.scientific_name || details.common_name || '',
+                watering: details.watering_frequency || 'Water as needed',
+                light: details.sunlight || 'Information not available',
+                notes: details.description || '',
+                imageUrl: details.image,
                 added: new Date().toLocaleDateString(),
             };
 
@@ -97,10 +189,16 @@ export default function Dashboard() {
             }
             
             setShowModal(false);
-            setNewPlant({ nickname: '', species: '' });
+            setNewPlant({ nickname: '' });
+            setNameQuery('');
+            setSuggestions([]);
+            setSelectedSuggestion(null);
+            setSuggestError(null);
         } catch (error) {
             console.error('Add plant failed:', error);
             alert(error.message || 'Unable to add plant right now.');
+        } finally {
+            setIsAddingPlant(false);
         }
     };
     // For OpenAI API
@@ -219,14 +317,15 @@ export default function Dashboard() {
                         </h3>
                         <Button
                             className="add-plant-btn"
-                            onClick={() => setShowModal(true)}>
+                            onClick={() => {
+                                setShowModal(true);
+                                setNameQuery('');
+                                setSuggestions([]);
+                                setSelectedSuggestion(null);
+                                setSuggestError(null);
+                            }}>
                             + Add Plant
                         </Button>
-                        {showModal && (
-                            <div className="custom-modal-overlay">
-                                <div className="custom-modal"></div>
-                            </div>
-                        )}
                     </div>
                     <p>Manage and track your growing collection</p>
 
@@ -297,26 +396,101 @@ export default function Dashboard() {
                                         })
                                     }
                                     placeholder="e.g., Leafy"
+                                    disabled={isAddingPlant}
                                 />
-                                <label>Species</label>
-                                <input
-                                    type="text"
-                                    value={newPlant.species}
-                                    onChange={(e) =>
-                                        setNewPlant({
-                                            ...newPlant,
-                                            species: e.target.value,
-                                        })
-                                    }
-                                    placeholder="e.g., Ficus lyrata"
-                                />
+                                <label>Plant name</label>
+                                <div className="plant-suggest">
+                                    <input
+                                        type="text"
+                                        value={nameQuery}
+                                        onChange={(e) => {
+                                            setNameQuery(e.target.value);
+                                            setSelectedSuggestion(null);
+                                            setSuggestError(null);
+                                        }}
+                                        onFocus={() => {
+                                            if (suggestions.length > 0 && !selectedSuggestion) {
+                                                setShowSuggestions(true);
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            setTimeout(
+                                                () => setShowSuggestions(false),
+                                                120
+                                            );
+                                        }}
+                                        placeholder="Start typing to search..."
+                                        disabled={isAddingPlant}
+                                    />
+                                    {isSuggestLoading && (
+                                        <p className="plant-suggest__status">
+                                            Searching…
+                                        </p>
+                                    )}
+                                    {!isSuggestLoading &&
+                                        showSuggestions &&
+                                        suggestions.length === 0 &&
+                                        nameQuery.trim().length >= 2 && (
+                                            <p className="plant-suggest__status">
+                                                No matches found.
+                                            </p>
+                                        )}
+                                    {suggestError && (
+                                        <p className="plant-suggest__error">
+                                            {suggestError}
+                                        </p>
+                                    )}
+                                    {showSuggestions &&
+                                        suggestions.length > 0 && (
+                                            <ul className="plant-suggest__list">
+                                                {suggestions.map((suggestion, index) => {
+                                                    const primary =
+                                                        suggestion.common_name ||
+                                                        suggestion.scientific_name ||
+                                                        'Unnamed plant';
+                                                    const secondary =
+                                                        suggestion.scientific_name &&
+                                                        suggestion.scientific_name !==
+                                                            suggestion.common_name
+                                                            ? ` — ${suggestion.scientific_name}`
+                                                            : '';
+                                                    return (
+                                                        <li
+                                                            key={suggestion.id}
+                                                            className={`plant-suggest__item`}
+                                                            onMouseDown={(event) => {
+                                                                event.preventDefault();
+                                                                handleSuggestionSelect(suggestion);
+                                                            }}>
+                                                            <span className="plant-suggest__primary">
+                                                                {primary}
+                                                                {secondary}
+                                                            </span>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        )}
+                                </div>
                                 <div className="custom-modal-actions">
-                                    <button onClick={handleAddPlant}>
-                                        Add
+                                    <button
+                                        type="button"
+                                        onClick={handleAddPlant}
+                                        disabled={
+                                            isAddingPlant || !selectedSuggestion
+                                        }>
+                                        {isAddingPlant ? 'Adding…' : 'Add'}
                                     </button>
                                     <button
+                                        type="button"
                                         className="cancel"
-                                        onClick={() => setShowModal(false)}>
+                                        onClick={() => {
+                                            setShowModal(false);
+                                            setSelectedSuggestion(null);
+                                            setSuggestions([]);
+                                            setNameQuery('');
+                                            setSuggestError(null);
+                                        }}>
                                         Cancel
                                     </button>
                                 </div>

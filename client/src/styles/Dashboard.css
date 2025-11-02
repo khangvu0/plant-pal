@@ -167,6 +167,64 @@
     border-radius: 8px;
 }
 
+.plant-suggest {
+    position: relative;
+}
+
+.plant-suggest input {
+    width: 100%;
+}
+
+.plant-suggest__status {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: #3a7a4a;
+}
+
+.plant-suggest__error {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: #d93a3a;
+}
+
+.plant-suggest__list {
+    position: absolute;
+    top: calc(100% + 0.3rem);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #b6e6b8;
+    border-radius: 10px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 0.25rem 0;
+    margin: 0;
+    list-style: none;
+    z-index: 30;
+}
+
+.plant-suggest__item {
+    padding: 0.6rem 0.85rem;
+    cursor: pointer;
+}
+
+.plant-suggest__item:hover { 
+    background: #e8f8ed; 
+}
+
+.plant-suggest__primary {
+    display: block;
+    font-weight: 500;
+    color: #1c6b3a;
+}
+
+.plant-suggest__secondary {
+    display: block;
+    font-size: 0.85rem;
+    color: #3a7a4a;
+}
+
 .custom-modal-actions {
     display: flex;
     justify-content: flex-end;

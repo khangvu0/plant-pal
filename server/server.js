@@ -17,6 +17,26 @@ const __dirname = path.dirname(__filename);
 const API = 'https://perenual.com/api/v2';
 const KEY = process.env.PERENUAL_KEY;
 
+// Simple in-memory caches to reduce upstream API calls
+const SUGGEST_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const DETAILS_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const suggestCache = new Map(); // key: q (lowercased), value: { v: suggestions[], t: timestamp }
+const detailsCache = new Map(); // key: id, value: { v: plant, t: timestamp }
+
+function getFromCache(cache, key, ttl) {
+    const hit = cache.get(key);
+    if (!hit) return null;
+    if (Date.now() - hit.t > ttl) {
+        cache.delete(key);
+        return null;
+    }
+    return hit.v;
+}
+
+function setCache(cache, key, value) {
+    cache.set(key, { v: value, t: Date.now() });
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -36,6 +56,127 @@ app.post("/api/ai/chat", async (req, res, next) => {
 });
 
 // Perenual API
+app.get('/api/plants/suggest', async (req, res) => {
+    try {
+        const q = (req.query.q || '').trim();
+
+        if (!KEY) {
+            return res.status(500).json({ error: 'Missing PERENUAL_KEY' });
+        }
+
+        if (q.length < 2) {
+            return res.json({ suggestions: [] });
+        }
+
+        const cacheKey = q.toLowerCase();
+        const cached = getFromCache(suggestCache, cacheKey, SUGGEST_TTL_MS);
+        if (cached) {
+            return res.json({ suggestions: cached });
+        }
+
+        const response = await fetch(`${API}/species-list?key=${KEY}&q=${encodeURIComponent(q)}&page=1`);
+        if (response.status === 429) {
+            return res.status(429).json({ error: 'rate_limited' });
+        }
+        if (!response.ok) {
+            throw new Error(`Perenual species-list failed (${response.status})`);
+        }
+
+        const json = await response.json();
+        const suggestions = (Array.isArray(json.data) ? json.data : [])
+            .slice(0, 8)
+            .map((item) => ({
+                id: item.id,
+                common_name: item.common_name || '',
+                scientific_name: Array.isArray(item.scientific_name)
+                    ? item.scientific_name.join(', ')
+                    : item.scientific_name || '',
+            }));
+
+        setCache(suggestCache, cacheKey, suggestions);
+        res.json({ suggestions });
+    } catch (error) {
+        console.error('Plant suggest error:', error);
+        res.status(500).json({ error: 'Failed to fetch plant suggestions' });
+    }
+});
+
+app.get('/api/plants/details/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!KEY) {
+            return res.status(500).json({ error: 'Missing PERENUAL_KEY' });
+        }
+        if (!id) {
+            return res.status(400).json({ error: 'Missing plant id' });
+        }
+
+        const cacheKey = String(id);
+        const cached = getFromCache(detailsCache, cacheKey, DETAILS_TTL_MS);
+        if (cached) {
+            return res.json({ plant: cached });
+        }
+
+        const response = await fetch(`${API}/species/details/${id}?key=${KEY}`);
+        if (response.status === 404) {
+            return res.status(404).json({ error: 'details_not_found' });
+        }
+        if (response.status === 429) {
+            return res.status(429).json({ error: 'rate_limited' });
+        }
+        if (!response.ok) {
+            return res.status(502).json({ error: `upstream_${response.status}` });
+        }
+
+        const data = await response.json();
+        const scientificName = Array.isArray(data.scientific_name)
+            ? data.scientific_name.join(', ')
+            : data.scientific_name || '';
+        const sunlight = Array.isArray(data.sunlight) ? data.sunlight.join(', ') : data.sunlight || '';
+        const watering = data.watering_general_benchmark?.value
+            ? `${data.watering_general_benchmark.value} ${data.watering_general_benchmark.unit}`
+            : data.watering || '';
+
+        const descriptionSource = data.description ?? null;
+        let description = '';
+        if (typeof descriptionSource === 'string') {
+            description = descriptionSource;
+        } else if (Array.isArray(descriptionSource)) {
+            description = descriptionSource.filter((part) => typeof part === 'string').join(' ');
+        } else if (
+            descriptionSource &&
+            typeof descriptionSource === 'object' &&
+            !Array.isArray(descriptionSource)
+        ) {
+            description = Object.values(descriptionSource)
+                .flat()
+                .filter((part) => typeof part === 'string')
+                .join(' ');
+        }
+
+        const plant = {
+            id: data.id ?? Number(id),
+            common_name: data.common_name || '',
+            scientific_name: scientificName,
+            watering_frequency: watering,
+            sunlight,
+            description,
+            image:
+                data.default_image?.regular_url ||
+                data.default_image?.medium_url ||
+                data.default_image?.original_url ||
+                null,
+        };
+
+        setCache(detailsCache, cacheKey, plant);
+        res.json({ plant });
+    } catch (error) {
+        console.error('Plant details error:', error);
+        res.status(500).json({ error: 'Failed to fetch plant details' });
+    }
+});
+
 app.get('/api/plants', async (req, res) => {
 try {
     const q = (req.query.q || '').trim();
