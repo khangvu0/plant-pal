@@ -82,11 +82,11 @@ export default function Header() {
                                             </span>
                                         </li>
                                         <li className="browser-default">
-                                            <button
+                                            <Link
                                                 className="dropdown_item logout-btn"
                                                 onClick={handleLogout}>
                                                 Logout
-                                            </button>
+                                            </Link>
                                         </li>
                                     </>
                                 ) : (
