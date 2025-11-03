@@ -505,7 +505,7 @@ return (
                     </p>
                 </div>
                 <div className="insight-card">
-                    <h4>Collection Vibe</h4>
+                    <h4>Sustainbility Tips</h4>
                     <p>{insights.summary}</p>
                 </div>
                 <div className="insight-card">
