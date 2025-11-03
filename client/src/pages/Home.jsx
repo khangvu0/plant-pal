@@ -40,7 +40,7 @@ export default function Home() {
 
                     <div className="stat-sec">
                         <h2>$180</h2>
-                        <p>Electricty Saved</p>
+                        <p>Electricity Saved</p>
                         <p className="des">Annually on appliances</p>
                     </div>
 
