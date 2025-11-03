@@ -46,7 +46,7 @@
 }
 
 .insight-highlight {
-    font-size: 1.4rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #0f7a37;
 }
@@ -104,7 +104,7 @@
 
 .plant-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 1.5rem;
 }
 
@@ -370,19 +370,21 @@
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
     max-height: 220px;
     overflow-y: auto;
-    padding: 0.25rem 0;
+    padding: 0.25rem 1rem;
     margin: 0;
     list-style: none;
+    text-decoration: none;
     z-index: 30;
 }
 
 .plant-suggest__item {
     padding: 0.6rem 0.85rem;
     cursor: pointer;
+    display: block;
 }
 
-.plant-suggest__item:hover { 
-    background: #e8f8ed; 
+.plant-suggest__item:hover {
+    background: #e8f8ed;
 }
 
 .plant-suggest__primary {
@@ -517,5 +519,9 @@
     .chat-input {
         max-width: 700px;
         height: 3rem;
+    }
+
+    .dashboard--insights {
+        max-width: 1000px;
     }
 }
