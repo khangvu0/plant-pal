@@ -39,7 +39,7 @@ export default function Footer() {
                     <h2 className="footer-logo">PlantPal</h2>
                     <p className="footer-desc">
                         Nurture your plants, track your eco-impact, and chat
-                        with your personal AI botanist. your all-in-one
+                        with your personal AI botanist. Your all-in-one
                         companion for a greener lifestyle.
                     </p>
                 </div>
